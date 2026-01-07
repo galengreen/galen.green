@@ -33,11 +33,26 @@ When creating commits:
    - `test:` adding or updating tests
    - `style:` formatting changes
 
+## Branching Strategy
+
+When working on new features or significant changes:
+
+1. **Assess the change**: If the work involves a new feature, significant refactor, or multiple related commits, create a feature branch
+2. **Branch naming**: Use descriptive kebab-case names
+   - `feat/feature-name` - for new features
+   - `fix/bug-description` - for bug fixes
+   - `chore/task-name` - for maintenance tasks
+   - `refactor/what-is-changing` - for refactoring
+3. **Create branch**: `git checkout -b <branch-name>`
+4. **When to stay on main**: Small, single-commit changes (typos, minor config tweaks) can go directly to main
+
 ## Workflow
 
-1. Stage appropriate files with `git add`
-2. Create commit with descriptive message
-3. Verify with `git status` after committing
+1. Decide if a feature branch is needed (see Branching Strategy)
+2. If needed, create and switch to the feature branch
+3. Stage appropriate files with `git add`
+4. Create commit with descriptive message
+5. Verify with `git status` after committing
 
 ## Safety Rules
 
