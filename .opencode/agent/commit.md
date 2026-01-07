@@ -50,9 +50,16 @@ When working on new features or significant changes:
 
 1. Decide if a feature branch is needed (see Branching Strategy)
 2. If needed, create and switch to the feature branch
-3. Stage appropriate files with `git add`
-4. Create commit with descriptive message
-5. Verify with `git status` after committing
+3. Review changes with `git status` and `git diff`
+4. **Present a summary to the user** before committing:
+   - Proposed commit message
+   - Files to be staged
+   - Brief description of what the changes do
+   - Branch (current or new feature branch)
+5. **Wait for user confirmation** - ask "Proceed with this commit?" and allow the user to request changes to the message or scope
+6. Once confirmed, stage files with `git add`
+7. Create commit with the agreed message
+8. Verify with `git status` after committing
 
 ## Safety Rules
 
