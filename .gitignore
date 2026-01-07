@@ -37,3 +37,10 @@ __screenshots__/
 
 test-results/
 playwright-report/
+
+# CMS
+cms/.next/
+cms/.env
+cms/media/
+cms/src/payload-types.ts
+cms/src/app/(payload)/admin/importMap.js
