@@ -44,3 +44,5 @@ cms/.env
 cms/media/
 cms/src/payload-types.ts
 cms/src/app/(payload)/admin/importMap.js
+# Local media assets
+media/
