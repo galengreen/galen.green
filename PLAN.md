@@ -542,65 +542,66 @@ Calculates photo positions for left-to-right, top-to-bottom ordering while maint
 
 ## Development Phases
 
-### Phase 1: Infrastructure
+### Phase 1: Infrastructure ✅
 
-- [ ] Initialise Payload CMS project
-- [ ] Configure MongoDB connection
-- [ ] Create all collections and globals
-- [ ] Set up media uploads with image sizes
-- [ ] Configure admin panel
+- [x] Initialise Payload CMS project
+- [x] Configure MongoDB connection
+- [x] Create all collections and globals
+- [x] Set up media uploads with image sizes
+- [x] Configure admin panel
+- [x] Create GitHub stats API endpoint
 
-### Phase 2: Vue Foundation
+### Phase 2: Vue Foundation ✅
 
-- [ ] Set up Vue 3 + TypeScript + Vite SSG
-- [ ] Configure PrimeVue (unstyled mode)
-- [ ] Create CSS design system
-- [ ] Build ViewportFrame component
-- [ ] Build NavBar component
-- [ ] Implement dark mode toggle
-- [ ] Set up Payload API client
+- [x] Set up Vue 3 + TypeScript + Vite SSG
+- [x] Configure PrimeVue (unstyled mode with custom preset)
+- [x] Create CSS design system (variables, reset, global, transitions)
+- [x] Build ViewportFrame component
+- [x] Build NavBar component (notch-style with theme toggle)
+- [x] Implement dark mode toggle (system/light/dark)
+- [x] Set up Payload API client
 
-### Phase 3: Core Sections
+### Phase 3: Core Sections ✅
 
-- [ ] Hero section
-- [ ] About section
-- [ ] Projects section with expansion
-- [ ] Image carousel component
-- [ ] Tech badges
+- [x] Hero section (photo + name layout)
+- [x] About section (with GitHub stats integration)
+- [x] Projects section with accordion expansion
+- [x] Image carousel component (PrimeVue Galleria)
+- [x] Tech badges
 
-### Phase 4: Blog
+### Phase 4: Blog ✅
 
-- [ ] Blog list section
-- [ ] Blog post page
-- [ ] Markdown rendering
-- [ ] Routing
+- [x] Blog list section
+- [x] Blog post page with rich text rendering
+- [x] Lexical/rich text rendering (RichText component)
+- [x] Routing (`/blog/:slug`)
 
-### Phase 5: Photography
+### Phase 5: Photography ✅
 
-- [ ] Masonry layout with correct ordering
-- [ ] Lazy loading + placeholders
-- [ ] Inline expansion
+- [x] Masonry layout with correct left-to-right ordering
+- [x] Lazy loading + blur placeholders (LazyImage component)
+- [x] Inline expansion
 
-### Phase 6: Contact & GitHub
+### Phase 6: Contact & GitHub ✅
 
-- [ ] Contact form
-- [ ] Payload submission handling
-- [ ] Email notifications
-- [ ] GitHub stats cron job
-- [ ] GitHub graph component
+- [x] Contact form (with validation)
+- [x] Payload submission handling
+- [ ] Email notifications (requires SMTP config)
+- [x] GitHub stats API endpoint (in CMS)
+- [x] GitHub graph component
 
-### Phase 7: Polish
+### Phase 7: Polish ✅
 
-- [ ] Scroll animations
-- [ ] All hover effects
-- [ ] Footer with socials
-- [ ] Mobile responsiveness
-- [ ] Border behaviour on mobile
+- [x] Scroll animations (Intersection Observer fade-in)
+- [x] All hover effects
+- [x] Footer with social icons
+- [x] Mobile responsiveness
+- [x] Border behaviour on mobile (reduced frame width/radius)
 
-### Phase 8: Deployment
+### Phase 8: Deployment 🔄
 
-- [ ] Docker configuration
-- [ ] Nginx setup
+- [x] Docker configuration (docker-compose.yml, Dockerfile)
+- [x] Nginx setup (reverse proxy config)
 - [ ] Cloudflare Tunnel configuration
 - [ ] Webhook for rebuilds
 - [ ] Final testing

@@ -67,6 +67,27 @@ export interface About {
   subtitle?: string
 }
 
+export interface SocialLink {
+  platform: 'github' | 'linkedin' | 'instagram' | 'twitter' | 'youtube' | 'email'
+  url: string
+}
+
+export interface SiteSettings {
+  name: {
+    first: string
+    last: string
+  }
+  email: string
+  socials: SocialLink[]
+  sectionTitles: {
+    about: string
+    projects: string
+    blog: string
+    photos: string
+    contact: string
+  }
+}
+
 export interface GitHubStats {
   username: string
   contributionGraph: ContributionWeek[]

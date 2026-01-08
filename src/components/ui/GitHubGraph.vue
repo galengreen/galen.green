@@ -18,10 +18,9 @@ const getContributionLevel = (count: number): number => {
   return 4
 }
 
-// Format the weeks data for display (show last 20 weeks for a compact view)
+// Format the weeks data for display (full year - 53 weeks)
 const displayWeeks = computed(() => {
-  const weeks = props.contributionGraph.slice(-20)
-  return weeks.map((week) => ({
+  return props.contributionGraph.map((week) => ({
     days: week.contributionDays.map((day) => ({
       date: day.date,
       count: day.contributionCount,
@@ -123,32 +122,32 @@ const getContributionText = (count: number): string => {
 }
 
 .graph-container {
-  overflow-x: auto;
-  padding-bottom: var(--space-2);
+  width: 100%;
 }
 
 .graph-grid {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(53, 1fr);
   gap: 3px;
-  min-width: max-content;
+  width: 100%;
 }
 
 .graph-week {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: repeat(7, 1fr);
   gap: 3px;
 }
 
 .graph-day {
-  width: 12px;
-  height: 12px;
+  aspect-ratio: 1;
+  width: 100%;
   border-radius: 2px;
   transition: transform var(--duration-fast) var(--ease-out);
   cursor: pointer;
 }
 
 .graph-day:hover {
-  transform: scale(1.2);
+  transform: scale(1.1);
 }
 
 /* Contribution levels - light mode */
@@ -208,7 +207,7 @@ const getContributionText = (count: number): string => {
 
 .legend-squares {
   display: flex;
-  gap: 3px;
+  gap: 2px;
 }
 
 .graph-stats {
@@ -237,14 +236,23 @@ const getContributionText = (count: number): string => {
   color: var(--color-muted);
 }
 
+@media (max-width: 768px) {
+  .graph-grid,
+  .graph-week,
+  .legend-squares {
+    gap: 2px;
+  }
+}
+
 @media (max-width: 480px) {
   .graph-header {
     flex-direction: column;
   }
 
-  .graph-day {
-    width: 10px;
-    height: 10px;
+  .graph-grid,
+  .graph-week,
+  .legend-squares {
+    gap: 1px;
   }
 
   .graph-stats {

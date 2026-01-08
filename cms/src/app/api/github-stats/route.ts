@@ -2,6 +2,18 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
+// CORS headers for development
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+}
+
+// Handle preflight requests
+export async function OPTIONS() {
+  return NextResponse.json({}, { headers: corsHeaders })
+}
+
 interface ContributionDay {
   date: string
   contributionCount: number
@@ -116,10 +128,13 @@ export async function GET() {
     const payload = await getPayload({ config })
     const stats = await payload.findGlobal({ slug: 'github-stats' })
 
-    return NextResponse.json(stats)
+    return NextResponse.json(stats, { headers: corsHeaders })
   } catch (error) {
     console.error('Failed to get GitHub stats:', error)
-    return NextResponse.json({ error: 'Failed to retrieve stats' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to retrieve stats' },
+      { status: 500, headers: corsHeaders },
+    )
   }
 }
 
@@ -131,7 +146,7 @@ export async function POST(request: Request) {
     const cronSecret = process.env.CRON_SECRET
 
     if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
     }
 
     const payload = await getPayload({ config })
@@ -141,7 +156,10 @@ export async function POST(request: Request) {
     const contributions = await fetchGitHubContributions(username)
 
     if (!contributions) {
-      return NextResponse.json({ error: 'Failed to fetch from GitHub' }, { status: 502 })
+      return NextResponse.json(
+        { error: 'Failed to fetch from GitHub' },
+        { status: 502, headers: corsHeaders },
+      )
     }
 
     const streaks = calculateStreaks(contributions.weeks)
@@ -157,9 +175,12 @@ export async function POST(request: Request) {
       },
     })
 
-    return NextResponse.json(updatedStats)
+    return NextResponse.json(updatedStats, { headers: corsHeaders })
   } catch (error) {
     console.error('Failed to update GitHub stats:', error)
-    return NextResponse.json({ error: 'Failed to update stats' }, { status: 500 })
+    return NextResponse.json(
+      { error: 'Failed to update stats' },
+      { status: 500, headers: corsHeaders },
+    )
   }
 }

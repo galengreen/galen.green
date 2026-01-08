@@ -1,36 +1,47 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import type { SocialLink } from '@/types'
+
+const props = defineProps<{
+  name?: { first: string; last: string }
+  socials?: SocialLink[]
+}>()
+
 const currentYear = new Date().getFullYear()
 
-const socials = [
-  {
-    name: 'GitHub',
-    url: 'https://github.com/galengreen/',
-    icon: 'github',
-  },
-  {
-    name: 'LinkedIn',
-    url: 'https://www.linkedin.com/in/galen-green-dev/',
-    icon: 'linkedin',
-  },
-  {
-    name: 'Instagram',
-    url: 'https://www.instagram.com/galengreen.space/',
-    icon: 'instagram',
-  },
-  {
-    name: 'Email',
-    url: 'mailto:dev@galen.green',
-    icon: 'email',
-  },
-]
+// Map platform to Font Awesome icon
+const platformIcons: Record<string, string[]> = {
+  github: ['fab', 'github'],
+  linkedin: ['fab', 'linkedin'],
+  instagram: ['fab', 'instagram'],
+  twitter: ['fab', 'x-twitter'],
+  youtube: ['fab', 'youtube'],
+  email: ['fas', 'envelope'],
+}
+
+const socialLinks = computed(() => {
+  if (!props.socials?.length) return []
+  return props.socials.map((social) => ({
+    name: social.platform.charAt(0).toUpperCase() + social.platform.slice(1),
+    url: social.url,
+    icon: platformIcons[social.platform] || ['fas', 'link'],
+  }))
+})
+
+const fullName = computed(() => {
+  if (props.name?.first || props.name?.last) {
+    return `${props.name.first || ''} ${props.name.last || ''}`.trim()
+  }
+  return ''
+})
 </script>
 
 <template>
   <footer class="footer">
     <div class="footer-content container">
-      <div class="social-links">
+      <div v-if="socialLinks.length" class="social-links">
         <a
-          v-for="social in socials"
+          v-for="social in socialLinks"
           :key="social.name"
           :href="social.url"
           :title="social.name"
@@ -38,15 +49,13 @@ const socials = [
           target="_blank"
           rel="noopener noreferrer"
         >
-          <span class="social-icon" :data-icon="social.icon">
-            <!-- Icons rendered via CSS or replaced with actual SVGs -->
-            {{ social.name.charAt(0) }}
-          </span>
+          <FontAwesomeIcon :icon="social.icon" class="social-icon" />
           <span class="sr-only">{{ social.name }}</span>
         </a>
       </div>
 
-      <p class="copyright text-subtle">{{ currentYear }} Galen Green. Built with Vue & Payload.</p>
+      <p v-if="fullName" class="copyright text-subtle">{{ fullName }} {{ currentYear }}</p>
+      <p v-else class="copyright text-subtle">{{ currentYear }}</p>
     </div>
   </footer>
 </template>
@@ -96,8 +105,7 @@ const socials = [
 }
 
 .social-icon {
-  font-size: var(--text-sm);
-  font-weight: 600;
+  font-size: var(--text-lg);
   color: var(--color-text-muted);
   transition: color var(--duration-fast) var(--ease-out);
 }
