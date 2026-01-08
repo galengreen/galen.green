@@ -4,6 +4,28 @@ import PrimeVue from 'primevue/config'
 import { definePreset } from '@primevue/themes'
 import Aura from '@primevue/themes/aura'
 
+// Font Awesome
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+import {
+  faGithub,
+  faLinkedin,
+  faInstagram,
+  faXTwitter,
+  faYoutube,
+} from '@fortawesome/free-brands-svg-icons'
+import {
+  faEnvelope,
+  faSun,
+  faMoon,
+  faCircleHalfStroke,
+  faArrowLeft,
+  faChevronLeft,
+  faChevronRight,
+  faExternalLink,
+  faLink,
+} from '@fortawesome/free-solid-svg-icons'
+
 import App from './App.vue'
 import { routes } from './router'
 
@@ -11,6 +33,26 @@ import './assets/styles/reset.css'
 import './assets/styles/variables.css'
 import './assets/styles/global.css'
 import './assets/styles/transitions.css'
+
+// Add icons to library
+library.add(
+  // Brands
+  faGithub,
+  faLinkedin,
+  faInstagram,
+  faXTwitter,
+  faYoutube,
+  // Solid
+  faEnvelope,
+  faSun,
+  faMoon,
+  faCircleHalfStroke,
+  faArrowLeft,
+  faLink,
+  faChevronLeft,
+  faChevronRight,
+  faExternalLink,
+)
 
 // Custom PrimeVue preset - unstyled base with minimal defaults
 const GalenPreset = definePreset(Aura, {
@@ -52,6 +94,9 @@ export const createApp = ViteSSG(
   ({ app, isClient }) => {
     const pinia = createPinia()
     app.use(pinia)
+
+    // Register Font Awesome component globally
+    app.component('FontAwesomeIcon', FontAwesomeIcon)
 
     app.use(PrimeVue, {
       theme: {

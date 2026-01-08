@@ -1,4 +1,12 @@
-import type { Photo, Project, BlogPost, About, GitHubStats, PaginatedResponse } from '@/types'
+import type {
+  Photo,
+  Project,
+  BlogPost,
+  About,
+  GitHubStats,
+  SiteSettings,
+  PaginatedResponse,
+} from '@/types'
 
 // API base URL - configured via environment variable
 const API_URL = import.meta.env.VITE_PAYLOAD_URL || 'http://localhost:3000'
@@ -107,6 +115,10 @@ export const blogPosts = {
  * Globals API
  */
 export const globals = {
+  async getSiteSettings(): Promise<SiteSettings> {
+    return fetchAPI<SiteSettings>('/globals/site-settings')
+  },
+
   async getAbout(): Promise<About> {
     return fetchAPI<About>('/globals/about?depth=2')
   },

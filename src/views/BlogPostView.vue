@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/services/payload'
 import type { BlogPost } from '@/types'
 import RichText from '@/components/ui/RichText.vue'
-import FooterSection from '@/components/layout/FooterSection.vue'
+import FooterSection from '@/components/sections/FooterSection.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -74,7 +74,10 @@ watch(
 <template>
   <article class="blog-post">
     <div class="container container-narrow">
-      <button class="back-link link" @click="goBack">&larr; Back to all posts</button>
+      <button class="back-link link" @click="goBack">
+        <FontAwesomeIcon :icon="['fas', 'arrow-left']" class="back-icon" />
+        Back to all posts
+      </button>
 
       <!-- Loading state -->
       <div v-if="loading" class="loading">
@@ -124,10 +127,16 @@ watch(
 }
 
 .back-link {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   margin-bottom: var(--space-8);
   font-size: var(--text-sm);
   color: var(--color-text-muted);
+}
+
+.back-icon {
+  font-size: var(--text-xs);
 }
 
 .cover-image {
