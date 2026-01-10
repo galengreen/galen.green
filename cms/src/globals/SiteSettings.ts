@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { isAuthenticated } from '../access/isAuthenticated'
 
 export const SiteSettings: GlobalConfig = {
   slug: 'site-settings',
@@ -8,6 +9,7 @@ export const SiteSettings: GlobalConfig = {
   },
   access: {
     read: () => true,
+    update: isAuthenticated,
   },
   fields: [
     {
@@ -24,7 +26,6 @@ export const SiteSettings: GlobalConfig = {
                   name: 'first',
                   type: 'text',
                   required: true,
-                  defaultValue: 'Galen',
                   admin: {
                     description: 'First name (displayed in hero)',
                   },
@@ -33,7 +34,6 @@ export const SiteSettings: GlobalConfig = {
                   name: 'last',
                   type: 'text',
                   required: true,
-                  defaultValue: 'Green',
                   admin: {
                     description: 'Last name (displayed in hero)',
                   },
@@ -44,9 +44,8 @@ export const SiteSettings: GlobalConfig = {
               name: 'email',
               type: 'email',
               required: true,
-              defaultValue: 'dev@galen.green',
               admin: {
-                description: 'Contact email address',
+                description: 'Contact email address (also receives contact form notifications)',
               },
             },
           ],
@@ -100,27 +99,27 @@ export const SiteSettings: GlobalConfig = {
                 {
                   name: 'about',
                   type: 'text',
-                  defaultValue: 'About',
+                  required: true,
                 },
                 {
                   name: 'projects',
                   type: 'text',
-                  defaultValue: 'Projects',
+                  required: true,
                 },
                 {
                   name: 'blog',
                   type: 'text',
-                  defaultValue: 'Blog',
+                  required: true,
                 },
                 {
                   name: 'photos',
                   type: 'text',
-                  defaultValue: 'Photography',
+                  required: true,
                 },
                 {
                   name: 'contact',
                   type: 'text',
-                  defaultValue: 'Contact',
+                  required: true,
                 },
               ],
             },

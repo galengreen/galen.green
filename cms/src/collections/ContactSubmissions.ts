@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { sendContactNotification } from '../lib/email'
 
 export const ContactSubmissions: CollectionConfig = {
   slug: 'contact-submissions',
@@ -47,11 +48,28 @@ export const ContactSubmissions: CollectionConfig = {
   ],
   hooks: {
     afterChange: [
-      async ({ doc, operation }) => {
+      async ({ doc, operation, req }) => {
         if (operation === 'create') {
-          // TODO: Send email notification to dev@galen.green
-          // This can be implemented with nodemailer or a service like Resend
-          console.log(`New contact submission from ${doc.name} (${doc.email})`)
+          // Get notification email from site settings
+          let notificationEmail: string | undefined
+          try {
+            const siteSettings = await req.payload.findGlobal({
+              slug: 'site-settings',
+            })
+            notificationEmail = siteSettings.email
+          } catch (error) {
+            console.warn('Could not fetch site settings for notification email:', error)
+          }
+
+          // Send email notification (non-blocking)
+          sendContactNotification({
+            name: doc.name,
+            email: doc.email,
+            message: doc.message,
+            notificationEmail,
+          }).catch((error) => {
+            console.error('Failed to send contact notification:', error)
+          })
         }
         return doc
       },

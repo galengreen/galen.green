@@ -48,7 +48,10 @@ cms/src/app/(payload)/admin/importMap.js
 # Local media assets
 media/
 
-# Environment files (keep .env for dev defaults)
+# Environment files
+.env
 .env.local
 .env.production
 .env*.local
+!.env.example
+!cms/.env.example

@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import exifr from 'exifr'
+import { isAuthenticated } from '../access/isAuthenticated'
 
 // Helper to convert filename to readable title
 const filenameToTitle = (filename: string): string => {
@@ -22,6 +23,9 @@ export const Media: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: isAuthenticated,
+    update: isAuthenticated,
+    delete: isAuthenticated,
   },
   upload: {
     staticDir: '../media',

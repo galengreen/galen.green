@@ -1,53 +1,66 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { useTheme } from "@/composables/useTheme";
+import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useTheme } from '@/composables/useTheme'
 
-const { theme, toggleTheme, initTheme } = useTheme();
+const { theme, toggleTheme, initTheme, cleanup: cleanupTheme } = useTheme()
 
 const sections = [
-  { id: "hero", label: "About" },
-  { id: "projects", label: "Projects" },
-  { id: "blog", label: "Blog" },
-  { id: "photos", label: "Photos" },
-  { id: "contact", label: "Contact" },
-];
+  { id: 'hero', label: 'About' },
+  { id: 'projects', label: 'Projects' },
+  { id: 'blog', label: 'Blog' },
+  { id: 'photos', label: 'Photos' },
+  { id: 'contact', label: 'Contact' },
+]
 
-const getScrollRoot = () => document.getElementById("scroll-root");
+const getScrollRoot = () => document.getElementById('scroll-root')
 
 const scrollToSection = (id: string) => {
-  const element = document.getElementById(id);
-  const scrollRoot = getScrollRoot();
+  const element = document.getElementById(id)
+  const scrollRoot = getScrollRoot()
 
   if (element && scrollRoot) {
-    const elementTop = element.offsetTop;
-    const navbarOffset = 100;
+    const elementTop = element.offsetTop
+    const navbarOffset = 100
 
     scrollRoot.scrollTo({
       top: elementTop - navbarOffset,
-      behavior: "smooth",
-    });
+      behavior: 'smooth',
+    })
   }
-};
+}
 
-const isScrolled = ref(false);
+const isScrolled = ref(false)
+
+const handleScroll = () => {
+  const scrollRoot = getScrollRoot()
+  if (scrollRoot) {
+    isScrolled.value = scrollRoot.scrollTop > 50
+  }
+}
 
 onMounted(() => {
-  initTheme();
+  initTheme()
 
-  const scrollRoot = getScrollRoot();
+  const scrollRoot = getScrollRoot()
   if (scrollRoot) {
-    scrollRoot.addEventListener("scroll", () => {
-      isScrolled.value = scrollRoot.scrollTop > 50;
-    });
+    scrollRoot.addEventListener('scroll', handleScroll)
   }
-});
+})
+
+onUnmounted(() => {
+  const scrollRoot = getScrollRoot()
+  if (scrollRoot) {
+    scrollRoot.removeEventListener('scroll', handleScroll)
+  }
+  cleanupTheme()
+})
 
 // Theme icon based on current theme
 const themeIcon = computed(() => {
-  if (theme.value === "system") return "circle-half-stroke";
-  if (theme.value === "dark") return "moon";
-  return "sun";
-});
+  if (theme.value === 'system') return 'circle-half-stroke'
+  if (theme.value === 'dark') return 'moon'
+  return 'sun'
+})
 </script>
 
 <template>
@@ -61,7 +74,12 @@ const themeIcon = computed(() => {
         </li>
       </ul>
 
-      <button class="theme-toggle" @click="toggleTheme" :title="`Theme: ${theme}`" aria-label="Toggle theme">
+      <button
+        class="theme-toggle"
+        @click="toggleTheme"
+        :title="`Theme: ${theme}`"
+        aria-label="Toggle theme"
+      >
         <FontAwesomeIcon :icon="['fas', themeIcon]" />
       </button>
     </div>

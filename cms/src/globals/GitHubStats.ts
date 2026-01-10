@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { isAuthenticated } from '../access/isAuthenticated'
 
 export const GitHubStats: GlobalConfig = {
   slug: 'github-stats',
@@ -8,12 +9,13 @@ export const GitHubStats: GlobalConfig = {
   },
   access: {
     read: () => true,
+    update: isAuthenticated,
   },
   fields: [
     {
       name: 'username',
       type: 'text',
-      defaultValue: 'galengreen',
+      required: true,
       admin: {
         description: 'Your GitHub username',
       },

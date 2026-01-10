@@ -1,146 +1,119 @@
 # AGENTS.md - Coding Agent Guidelines
 
-Guidelines for AI coding agents working in this Vue 3 + TypeScript codebase.
+Guidelines for AI coding agents working in this Vue 3 + Payload CMS codebase.
 
 ## Project Overview
 
-- **Framework**: Vue 3 with Composition API
-- **Language**: TypeScript (strict mode)
-- **Build Tool**: Vite 7.x
-- **State Management**: Pinia 3.x
+- **Frontend**: Vue 3 with Composition API, TypeScript (strict mode), Vite 7.x
+- **CMS**: Payload CMS 3.x (Next.js 15.x)
+- **Database**: MongoDB
+- **UI Library**: PrimeVue 4.x
+- **State Management**: Composables (no Pinia stores currently)
 - **Routing**: Vue Router 4.x
 - **Module System**: ES Modules (`"type": "module"`)
 - **Node Version**: ^20.19.0 or >=22.12.0
-
-## Build/Lint/Test Commands
-
-```sh
-# Development
-npm run dev          # Start Vite dev server
-npm run build        # Type-check and build for production
-npm run type-check   # Run vue-tsc type checking
-
-# Linting & Formatting
-npm run lint         # ESLint with auto-fix and cache
-npm run format       # Prettier format src/
-
-# Unit Tests (Vitest)
-npm run test:unit                                    # Run all unit tests
-npm run test:unit -- src/components/__tests__/HelloWorld.spec.ts  # Single file
-npm run test:unit -- --grep "pattern"               # Tests matching pattern
-
-# E2E Tests (Playwright)
-npm run test:e2e                        # Run all E2E tests
-npm run test:e2e -- e2e/vue.spec.ts     # Single test file
-npm run test:e2e -- --project=chromium  # Specific browser
-```
 
 ## Directory Structure
 
 ```
 src/
-├── assets/           # CSS, images, static assets
-├── components/       # Reusable Vue components
-│   ├── __tests__/    # Unit tests (*.spec.ts)
-│   └── icons/        # Icon components
-├── router/           # Vue Router configuration
-├── stores/           # Pinia stores
-├── views/            # Page-level components
-├── App.vue           # Root component
-└── main.ts           # Entry point
-e2e/                  # Playwright E2E tests
+├── components/   # Vue components (__tests__/, icons/, layout/, sections/, ui/)
+├── composables/  # Vue composables (useTheme, useMedia, useMasonry)
+├── router/       # Vue Router config
+└── views/        # Page-level components
+cms/src/
+├── collections/  # Payload collections (BlogPosts, Projects, Photos)
+└── globals/      # Payload globals (SiteSettings, About, GitHubStats)
+```
+
+## Build/Lint/Test Commands
+
+```sh
+# Frontend (root)
+npm run dev          # Start Vite dev server
+npm run build        # Type-check and build for production
+npm run type-check   # Run vue-tsc type checking
+npm run lint         # ESLint with auto-fix and cache
+npm run format       # Prettier format src/
+npm run test:unit                                    # Run all unit tests
+npm run test:unit -- src/components/__tests__/HelloWorld.spec.ts  # Single file
+npm run test:unit -- --grep "pattern"               # Tests matching pattern
+
+# CMS (cms directory)
+cd cms && npm run dev              # Start Payload CMS dev server
+npm run build            # Build for production
+npm run start            # Start production server
+npm run generate:types   # Generate Payload TypeScript types
+
+# E2E Tests (root)
+npm run test:e2e                        # Run all E2E tests
+npm run test:e2e -- e2e/vue.spec.ts     # Single test file
+npm run test:e2e -- --project=chromium  # Specific browser
 ```
 
 ## Code Style Guidelines
 
 ### Formatting (Prettier)
 
-- **No semicolons**, **single quotes**, **100 char width**, **2 space indent**, **LF endings**
+- **No semicolons**, **single quotes**, **100 char width**, **2 space indent**
 
-### TypeScript
+### TypeScript & Vue Components
 
-- Use strict TypeScript; define props with `defineProps<{ prop: Type }>()`
+- Use `<script setup lang="ts">` with composition API
+- Define props with `defineProps<{ prop: Type }>()`
 - Use `ref()` for reactive primitives, `computed()` for derived state
-- Use the `@/` path alias for src imports (e.g., `@/components/Foo.vue`)
-
-### Vue Components
-
-- Use `<script setup lang="ts">` composition API syntax
 - Order: `<script>`, `<template>`, `<style scoped>`
 - Always use scoped styles unless intentionally global
-
-```vue
-<script setup lang="ts">
-defineProps<{
-  msg: string
-  count?: number
-}>()
-</script>
-
-<template>
-  <!-- template content -->
-</template>
-
-<style scoped>
-/* scoped styles */
-</style>
-```
+- Use the `@/` path alias for src imports
 
 ### Naming Conventions
 
-| Type        | Convention                  | Example              |
-| ----------- | --------------------------- | -------------------- |
-| Components  | PascalCase                  | `HelloWorld.vue`     |
-| Views       | PascalCase + View suffix    | `HomeView.vue`       |
-| Stores      | camelCase with `use` prefix | `useCounterStore`    |
-| Unit tests  | `*.spec.ts` in `__tests__/` | `HelloWorld.spec.ts` |
-| E2E tests   | `*.spec.ts` in `e2e/`       | `vue.spec.ts`        |
-| Composables | camelCase with `use` prefix | `useFeature.ts`      |
+| Type        | Convention                  | Example            |
+| ----------- | --------------------------- | ------------------ |
+| Components  | PascalCase                  | `RichText.vue`     |
+| Views       | PascalCase + View suffix    | `BlogPostView.vue` |
+| Composables | camelCase with `use` prefix | `useTheme.ts`      |
+| Unit tests  | `*.spec.ts` in `__tests__/` | `RichText.spec.ts` |
+| E2E tests   | `*.spec.ts` in `e2e/`       | `vue.spec.ts`      |
+| Collections | PascalCase                  | `BlogPosts.ts`     |
 
 ### Imports
 
 - Library imports first, then local imports
-- Named exports for stores, default exports for router/main configs
 - Use `@/` path alias for src imports; relative imports for nearby files
+- In composables, export named functions and state
 
 ```ts
 import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
-import HelloWorld from '@/components/HelloWorld.vue'
-import HomeView from '../views/HomeView.vue'
+import { useTheme } from '@/composables/useTheme'
+import RichText from '@/components/ui/RichText.vue'
 ```
 
-### Pinia Stores
+### Vue Composables
 
-Use composition API style (setup stores). Export with `use` prefix.
+Use composition API style with reactive refs at module level, export function returning state/actions.
 
-```ts
-import { ref, computed } from 'vue'
-import { defineStore } from 'pinia'
+### Payload CMS Collections
 
-export const useCounterStore = defineStore('counter', () => {
-  const count = ref(0)
-  const doubleCount = computed(() => count.value * 2)
-  function increment() {
-    count.value++
-  }
-  return { count, doubleCount, increment }
-})
-```
+Export `CollectionConfig` with PascalCase naming. Include labels, admin config, access control, and fields.
 
-### Testing Patterns
+### Router
+
+Lazy-load routes with dynamic imports. Use named routes.
+
+### Testing
 
 #### Unit Tests (Vitest + Vue Test Utils)
 
 ```ts
 import { describe, it, expect } from 'vitest'
 import { mount } from '@vue/test-utils'
-import HelloWorld from '../HelloWorld.vue'
+import RichText from '../RichText.vue'
 
-describe('HelloWorld', () => {
-  it('renders properly', () => {
-    const wrapper = mount(HelloWorld, { props: { msg: 'Hello' } })
-    expect(wrapper.text()).toContain('Hello')
+describe('RichText', () => {
+  it('renders content', () => {
+    const wrapper = mount(RichText, { props: { content: mockData } })
+    expect(wrapper.html()).toContain('<p>')
   })
 })
 ```
@@ -150,22 +123,11 @@ describe('HelloWorld', () => {
 ```ts
 import { test, expect } from '@playwright/test'
 
-test('visits the app root url', async ({ page }) => {
+test('navigates to blog post', async ({ page }) => {
   await page.goto('/')
-  await expect(page.locator('h1')).toHaveText('You did it!')
+  await page.click('text=Blog')
+  await expect(page).toHaveURL(/#blog/)
 })
-```
-
-### Router
-
-Lazy-load routes with dynamic imports. Use named routes.
-
-```ts
-{
-  path: '/about',
-  name: 'about',
-  component: () => import('../views/AboutView.vue'),
-}
 ```
 
 ### Error Handling
@@ -173,12 +135,6 @@ Lazy-load routes with dynamic imports. Use named routes.
 - Use try/catch for async operations
 - Provide meaningful error messages
 - Consider user-facing error states in components
-
-## ESLint Configuration
-
-- Vue essential + TypeScript recommended rules
-- Vitest plugin for unit tests, Playwright plugin for E2E
-- Prettier integration (skip formatting rules)
 
 ## Pre-commit Checklist
 

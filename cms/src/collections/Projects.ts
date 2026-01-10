@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isAuthenticated } from '../access/isAuthenticated'
 
 export const Projects: CollectionConfig = {
   slug: 'projects',
@@ -12,6 +13,9 @@ export const Projects: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: isAuthenticated,
+    update: isAuthenticated,
+    delete: isAuthenticated,
   },
   defaultSort: '-date',
   fields: [

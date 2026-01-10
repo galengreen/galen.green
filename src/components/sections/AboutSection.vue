@@ -63,35 +63,7 @@ defineProps<{
   gap: var(--space-2);
 }
 
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-surface) 0%,
-    var(--color-border) 50%,
-    var(--color-surface) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--space-1);
-}
-
-.skeleton-text {
-  height: 1.2em;
-  margin-bottom: var(--space-2);
-}
-
-.skeleton-text.short {
-  width: 60%;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
+/* skeleton classes are defined globally in transitions.css */
 
 @media (max-width: 768px) {
   .about-content {

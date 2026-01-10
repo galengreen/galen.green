@@ -5,6 +5,10 @@ export type Theme = 'light' | 'dark' | 'system'
 const theme = ref<Theme>('system')
 const isDark = ref(false)
 
+// Store the media query and handler for cleanup
+let mediaQuery: MediaQueryList | null = null
+let mediaQueryHandler: ((e: MediaQueryListEvent) => void) | null = null
+
 export function useTheme() {
   const initTheme = () => {
     if (typeof window === 'undefined') return
@@ -17,12 +21,22 @@ export function useTheme() {
     updateDarkMode()
 
     // Listen for system preference changes
-    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (e) => {
+    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
+    mediaQueryHandler = (e: MediaQueryListEvent) => {
       if (theme.value === 'system') {
         isDark.value = e.matches
         applyTheme()
       }
-    })
+    }
+    mediaQuery.addEventListener('change', mediaQueryHandler)
+  }
+
+  const cleanup = () => {
+    if (mediaQuery && mediaQueryHandler) {
+      mediaQuery.removeEventListener('change', mediaQueryHandler)
+      mediaQuery = null
+      mediaQueryHandler = null
+    }
   }
 
   const updateDarkMode = () => {
@@ -73,5 +87,6 @@ export function useTheme() {
     initTheme,
     setTheme,
     toggleTheme,
+    cleanup,
   }
 }
