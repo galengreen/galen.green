@@ -104,7 +104,40 @@
   opacity: 0;
 }
 
-/* Image loading */
+/* Shimmer animation for loading states */
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Base skeleton loading class */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    var(--color-surface) 0%,
+    var(--color-border) 50%,
+    var(--color-surface) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+  border-radius: var(--space-1);
+}
+
+/* Skeleton text variant */
+.skeleton-text {
+  height: 1.2em;
+  margin-bottom: var(--space-2);
+}
+
+.skeleton-text.short {
+  width: 60%;
+}
+
+/* Image loading (alias for backwards compatibility) */
 .img-loading {
   background: linear-gradient(
     90deg,
@@ -114,15 +147,6 @@
   );
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
 }
 
 /* Blur placeholder for lazy images */

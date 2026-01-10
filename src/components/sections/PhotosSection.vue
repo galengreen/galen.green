@@ -127,26 +127,7 @@ const photosWithDimensions = computed(() => {
   text-align: center;
 }
 
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-surface) 0%,
-    var(--color-border) 50%,
-    var(--color-surface) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--space-1);
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
+/* skeleton class is defined globally in transitions.css */
 
 @media (max-width: 768px) {
   .photos-grid-loading {

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isAuthenticated } from '../access/isAuthenticated'
 
 export const Photos: CollectionConfig = {
   slug: 'photos',
@@ -12,6 +13,9 @@ export const Photos: CollectionConfig = {
   },
   access: {
     read: () => true,
+    create: isAuthenticated,
+    update: isAuthenticated,
+    delete: isAuthenticated,
   },
   defaultSort: '-date',
   hooks: {

@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { isAuthenticated } from '../access/isAuthenticated'
 
 export const BlogPosts: CollectionConfig = {
   slug: 'blog-posts',
@@ -11,7 +12,14 @@ export const BlogPosts: CollectionConfig = {
     defaultColumns: ['title', 'date', 'published'],
   },
   access: {
-    read: () => true,
+    // Public can only read published posts, authenticated users can read all
+    read: ({ req: { user } }) => {
+      if (user) return true
+      return { published: { equals: true } }
+    },
+    create: isAuthenticated,
+    update: isAuthenticated,
+    delete: isAuthenticated,
   },
   defaultSort: '-date',
   fields: [

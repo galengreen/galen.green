@@ -1,6 +1,47 @@
 # galen.green
 
-This template should help get you started developing with Vue 3 in Vite.
+Personal website built with Vue 3, Payload CMS, and MongoDB.
+
+## Project Structure
+
+- **Frontend**: Vue 3 + Vite (root directory)
+- **CMS**: Payload CMS (cms directory)
+- **Database**: MongoDB
+
+## Development Setup
+
+### Prerequisites
+
+- Node.js ^20.19.0 or >=22.12.0
+- Docker (for MongoDB)
+
+### Getting Started
+
+1. Clone and install dependencies:
+
+```sh
+npm install
+cd cms && npm install
+```
+
+2. Start MongoDB, CMS, and Vue dev servers in separate terminals:
+
+```sh
+# Terminal 1 - MongoDB
+docker run -d --name mongodb -p 27017:27017 mongo:7
+
+# Terminal 2 - CMS
+cd cms && npm run dev
+
+# Terminal 3 - Vue
+npm run dev
+```
+
+Alternatively, use Docker Compose:
+
+```sh
+docker-compose up -d
+```
 
 ## Recommended IDE Setup
 
@@ -21,18 +62,20 @@ TypeScript cannot handle type information for `.vue` imports by default, so we r
 
 ## Customize configuration
 
-See [Vite Configuration Reference](https://vite.dev/config/).
+See [Vite Configuration Reference](https://vite.dev/config/) and [Payload CMS Documentation](https://payloadcms.com/docs).
 
-## Project Setup
+## Build for Production
+
+### Vue Frontend
 
 ```sh
-npm install
+npm run build
 ```
 
-### Compile and Hot-Reload for Development
+### Payload CMS
 
 ```sh
-npm run dev
+cd cms && npm run build
 ```
 
 ### Type-Check, Compile and Minify for Production

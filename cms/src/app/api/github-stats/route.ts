@@ -151,7 +151,14 @@ export async function POST(request: Request) {
 
     const payload = await getPayload({ config })
     const currentStats = await payload.findGlobal({ slug: 'github-stats' })
-    const username = currentStats.username || 'galengreen'
+    const username = currentStats.username
+
+    if (!username) {
+      return NextResponse.json(
+        { error: 'GitHub username not configured in CMS' },
+        { status: 400, headers: corsHeaders },
+      )
+    }
 
     const contributions = await fetchGitHubContributions(username)
 

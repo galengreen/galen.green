@@ -174,17 +174,7 @@ watch(
   gap: var(--space-4);
 }
 
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    var(--color-surface) 0%,
-    var(--color-border) 50%,
-    var(--color-surface) 100%
-  );
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-  border-radius: var(--space-1);
-}
+/* skeleton base class is defined globally in transitions.css */
 
 .skeleton-title {
   height: 3rem;
@@ -194,24 +184,6 @@ watch(
 .skeleton-date {
   height: 1rem;
   width: 30%;
-}
-
-.skeleton-text {
-  height: 1.5rem;
-  width: 100%;
-}
-
-.skeleton-text.short {
-  width: 60%;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
 }
 
 /* Error state */

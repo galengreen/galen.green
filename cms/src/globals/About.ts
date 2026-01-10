@@ -1,4 +1,5 @@
 import type { GlobalConfig } from 'payload'
+import { isAuthenticated } from '../access/isAuthenticated'
 
 export const About: GlobalConfig = {
   slug: 'about',
@@ -8,6 +9,7 @@ export const About: GlobalConfig = {
   },
   access: {
     read: () => true,
+    update: isAuthenticated,
   },
   fields: [
     {

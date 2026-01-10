@@ -1,6 +1,6 @@
 :root {
   /* Viewport frame */
-  --frame-width: 20px;
+  --frame-width: 10px;
   --frame-radius: 28px;
 
   /* Colours - Light mode */
@@ -75,7 +75,7 @@
 
   /* Navbar */
   --navbar-height: 48px;
-  --navbar-top: calc(var(--frame-width) + var(--space-4));
+  --navbar-top: calc(var(--frame-width) * 2);
 }
 
 /* Dark mode */
