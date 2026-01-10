@@ -12,6 +12,14 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Generate Payload importmap (required before build)
+ARG MONGODB_URI=mongodb://localhost:27017/build
+ARG PAYLOAD_SECRET=build-time-secret
+ENV MONGODB_URI=${MONGODB_URI}
+ENV PAYLOAD_SECRET=${PAYLOAD_SECRET}
+
+RUN npm run generate:importmap
+
 # Build the application
 RUN npm run build
 
