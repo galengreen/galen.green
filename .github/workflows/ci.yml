@@ -120,6 +120,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Generate Payload importmap
+        run: npm run generate:importmap
+        env:
+          MONGODB_URI: mongodb://localhost:27017/test
+          PAYLOAD_SECRET: ci-test-secret-not-for-production
+
       - name: Build CMS
         run: npm run build
         env:
