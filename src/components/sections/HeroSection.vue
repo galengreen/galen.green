@@ -20,9 +20,7 @@ defineProps<{
           :alt="about.photo.alt || 'Profile photo'"
           class="hero-photo"
         />
-        <div v-else class="hero-image-placeholder">
-          <span>Photo</span>
-        </div>
+        <div v-else class="hero-image-placeholder"></div>
       </div>
       <div class="hero-text">
         <h1 class="hero-name">
