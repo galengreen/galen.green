@@ -8,8 +8,11 @@ import type {
   PaginatedResponse,
 } from '@/types'
 
-// API base URL - configured via environment variable
-const API_URL = import.meta.env.VITE_PAYLOAD_URL || 'http://localhost:3000'
+// API base URL - use relative URLs in production (nginx proxies /api to CMS)
+// In development, use VITE_PAYLOAD_URL or default to localhost:3000
+const API_URL = import.meta.env.PROD
+  ? ''
+  : import.meta.env.VITE_PAYLOAD_URL || 'http://localhost:3000'
 
 /**
  * Generic fetch wrapper with error handling
@@ -145,7 +148,8 @@ export const contact = {
  */
 export const github = {
   async getStats(): Promise<GitHubStats> {
-    const response = await fetch(`${API_URL}/api/github-stats`)
+    const url = API_URL ? `${API_URL}/api/github-stats` : '/api/github-stats'
+    const response = await fetch(url)
     if (!response.ok) {
       throw new Error('Failed to fetch GitHub stats')
     }
@@ -153,7 +157,8 @@ export const github = {
   },
 
   async refreshStats(): Promise<GitHubStats> {
-    const response = await fetch(`${API_URL}/api/github-stats`, {
+    const url = API_URL ? `${API_URL}/api/github-stats` : '/api/github-stats'
+    const response = await fetch(url, {
       method: 'POST',
     })
     if (!response.ok) {
