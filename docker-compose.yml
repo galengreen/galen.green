@@ -1,17 +1,30 @@
-version: '3.8'
-
 services:
   # MongoDB Database
   mongodb:
     image: mongo:7
     container_name: galen-mongodb
     restart: unless-stopped
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=${MONGO_USERNAME:-admin}
+      - MONGO_INITDB_ROOT_PASSWORD=${MONGO_PASSWORD:-devpassword}
     volumes:
       - mongodb_data:/data/db
     networks:
       - galen-network
     healthcheck:
-      test: ['CMD', 'mongosh', '--eval', "db.adminCommand('ping')"]
+      test:
+        [
+          'CMD',
+          'mongosh',
+          '-u',
+          '${MONGO_USERNAME:-admin}',
+          '-p',
+          '${MONGO_PASSWORD:-devpassword}',
+          '--authenticationDatabase',
+          'admin',
+          '--eval',
+          "db.adminCommand('ping')",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -24,7 +37,7 @@ services:
     container_name: galen-cms
     restart: unless-stopped
     environment:
-      - DATABASE_URI=mongodb://mongodb:27017/galen-green
+      - DATABASE_URI=mongodb://${MONGO_USERNAME:-admin}:${MONGO_PASSWORD:-devpassword}@mongodb:27017/galen-green?authSource=admin
       - PAYLOAD_SECRET=${PAYLOAD_SECRET}
       - NEXT_PUBLIC_SERVER_URL=${CMS_URL:-http://localhost:3000}
     volumes:

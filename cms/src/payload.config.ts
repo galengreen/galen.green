@@ -30,14 +30,20 @@ export default buildConfig({
     url: process.env.MONGODB_URI || 'mongodb://localhost:27017/galen-green',
   }),
   sharp,
-  cors: [
-    'http://localhost:5173', // Vue dev server
-    'http://localhost:3000', // Next.js dev server
-    process.env.FRONTEND_URL || 'https://galen.green',
-  ].filter(Boolean) as string[],
-  csrf: [
-    'http://localhost:5173',
-    'http://localhost:3000',
-    process.env.FRONTEND_URL || 'https://galen.green',
-  ].filter(Boolean) as string[],
+  cors:
+    process.env.NODE_ENV === 'production'
+      ? [process.env.FRONTEND_URL || 'https://galen.green']
+      : [
+          'http://localhost:5173',
+          'http://localhost:3000',
+          process.env.FRONTEND_URL || 'https://galen.green',
+        ],
+  csrf:
+    process.env.NODE_ENV === 'production'
+      ? [process.env.FRONTEND_URL || 'https://galen.green']
+      : [
+          'http://localhost:5173',
+          'http://localhost:3000',
+          process.env.FRONTEND_URL || 'https://galen.green',
+        ],
 })

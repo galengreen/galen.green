@@ -55,3 +55,6 @@ media/
 .env*.local
 !.env.example
 !cms/.env.example
+
+# Documentation (generated/audit files)
+docs/
