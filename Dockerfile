@@ -18,6 +18,10 @@ RUN npm run build
 # Production stage
 FROM nginx:alpine AS runner
 
+# Version label for TrueNAS Apps
+ARG VERSION=dev
+LABEL org.opencontainers.image.version=${VERSION}
+
 # Copy built assets
 COPY --from=builder /app/dist /usr/share/nginx/html
 
