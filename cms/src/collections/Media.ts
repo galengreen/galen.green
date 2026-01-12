@@ -28,7 +28,7 @@ export const Media: CollectionConfig = {
     delete: isAuthenticated,
   },
   upload: {
-    staticDir: '../media',
+    staticDir: process.env.MEDIA_DIR || '../media',
     mimeTypes: ['image/*'],
     filesRequiredOnCreate: false,
     imageSizes: [
