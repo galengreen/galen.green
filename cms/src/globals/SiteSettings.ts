@@ -99,27 +99,27 @@ export const SiteSettings: GlobalConfig = {
                 {
                   name: 'about',
                   type: 'text',
-                  required: true,
+                  defaultValue: 'About',
                 },
                 {
                   name: 'projects',
                   type: 'text',
-                  required: true,
+                  defaultValue: 'Projects',
                 },
                 {
                   name: 'blog',
                   type: 'text',
-                  required: true,
+                  defaultValue: 'Blog',
                 },
                 {
                   name: 'photos',
                   type: 'text',
-                  required: true,
+                  defaultValue: 'Photos',
                 },
                 {
                   name: 'contact',
                   type: 'text',
-                  required: true,
+                  defaultValue: 'Contact',
                 },
               ],
             },

@@ -47,7 +47,6 @@ export const BlogPosts: CollectionConfig = {
     {
       name: 'content',
       type: 'richText',
-      required: true,
       admin: {
         description: 'The full blog post content',
       },
@@ -63,7 +62,7 @@ export const BlogPosts: CollectionConfig = {
     {
       name: 'date',
       type: 'date',
-      required: true,
+      defaultValue: () => new Date().toISOString(),
       admin: {
         date: {
           pickerAppearance: 'dayOnly',

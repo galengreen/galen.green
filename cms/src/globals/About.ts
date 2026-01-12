@@ -15,7 +15,6 @@ export const About: GlobalConfig = {
     {
       name: 'content',
       type: 'richText',
-      required: true,
       admin: {
         description: 'Your bio/about text (2-3 paragraphs)',
       },

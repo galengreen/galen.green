@@ -36,7 +36,6 @@ export const Projects: CollectionConfig = {
     {
       name: 'excerpt',
       type: 'textarea',
-      required: true,
       admin: {
         description: 'Brief description shown on the project card (1-2 sentences)',
       },
@@ -44,7 +43,6 @@ export const Projects: CollectionConfig = {
     {
       name: 'description',
       type: 'richText',
-      required: true,
       admin: {
         description: 'Full description shown when the project is expanded',
       },
@@ -53,7 +51,6 @@ export const Projects: CollectionConfig = {
       name: 'images',
       type: 'array',
       label: 'Screenshots',
-      minRows: 1,
       admin: {
         description: 'Project screenshots for the carousel',
       },
@@ -107,7 +104,7 @@ export const Projects: CollectionConfig = {
     {
       name: 'date',
       type: 'date',
-      required: true,
+      defaultValue: () => new Date().toISOString(),
       admin: {
         date: {
           pickerAppearance: 'dayOnly',
