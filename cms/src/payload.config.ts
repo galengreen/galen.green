@@ -34,12 +34,10 @@ export default buildConfig({
     'http://localhost:5173', // Vue dev server
     'http://localhost:3000', // Next.js dev server
     process.env.FRONTEND_URL || 'https://galen.green',
-    process.env.DEV_FRONTEND_URL, // Additional dev frontend
   ].filter(Boolean) as string[],
   csrf: [
     'http://localhost:5173',
     'http://localhost:3000',
     process.env.FRONTEND_URL || 'https://galen.green',
-    process.env.DEV_FRONTEND_URL, // Additional dev frontend
   ].filter(Boolean) as string[],
 })
