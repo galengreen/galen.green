@@ -11,6 +11,26 @@ import { About, GitHubStats, SiteSettings } from './globals'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
+const DEFAULT_FRONTEND_URL = 'https://galen.green'
+
+const splitOrigins = (value?: string) =>
+  (value || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+
+const productionOrigins = Array.from(
+  new Set([
+    DEFAULT_FRONTEND_URL,
+    ...splitOrigins(process.env.FRONTEND_URL),
+    ...splitOrigins(process.env.DEV_FRONTEND_URL),
+  ]),
+)
+
+const developmentOrigins = Array.from(
+  new Set(['http://localhost:5173', 'http://localhost:3000', ...productionOrigins]),
+)
+
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
   admin: {
@@ -30,20 +50,6 @@ export default buildConfig({
     url: process.env.MONGODB_URI || 'mongodb://localhost:27017/galen-green',
   }),
   sharp,
-  cors:
-    process.env.NODE_ENV === 'production'
-      ? [process.env.FRONTEND_URL || 'https://galen.green']
-      : [
-          'http://localhost:5173',
-          'http://localhost:3000',
-          process.env.FRONTEND_URL || 'https://galen.green',
-        ],
-  csrf:
-    process.env.NODE_ENV === 'production'
-      ? [process.env.FRONTEND_URL || 'https://galen.green']
-      : [
-          'http://localhost:5173',
-          'http://localhost:3000',
-          process.env.FRONTEND_URL || 'https://galen.green',
-        ],
+  cors: process.env.NODE_ENV === 'production' ? productionOrigins : developmentOrigins,
+  csrf: process.env.NODE_ENV === 'production' ? productionOrigins : developmentOrigins,
 })

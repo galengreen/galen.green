@@ -2,17 +2,35 @@ import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
 
-// CORS headers - restrict to frontend origin
-const allowedOrigin = process.env.FRONTEND_URL || 'https://galen.green'
-const corsHeaders = {
-  'Access-Control-Allow-Origin': allowedOrigin,
-  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+const DEFAULT_FRONTEND_URL = 'https://galen.green'
+
+const splitOrigins = (value?: string) =>
+  (value || '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean)
+
+const allowedOrigins = new Set([
+  DEFAULT_FRONTEND_URL,
+  ...splitOrigins(process.env.FRONTEND_URL),
+  ...splitOrigins(process.env.DEV_FRONTEND_URL),
+])
+
+const getCorsHeaders = (request: Request) => {
+  const origin = request.headers.get('origin')
+  const allowOrigin = origin && allowedOrigins.has(origin) ? origin : DEFAULT_FRONTEND_URL
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+    Vary: 'Origin',
+  }
 }
 
 // Handle preflight requests
-export async function OPTIONS() {
-  return NextResponse.json({}, { headers: corsHeaders })
+export async function OPTIONS(request: Request) {
+  return new NextResponse(null, { status: 204, headers: getCorsHeaders(request) })
 }
 
 interface ContributionDay {
@@ -124,17 +142,17 @@ function calculateStreaks(weeks: ContributionWeek[]): { current: number; longest
 }
 
 // GET: Retrieve cached stats
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const payload = await getPayload({ config })
     const stats = await payload.findGlobal({ slug: 'github-stats' })
 
-    return NextResponse.json(stats, { headers: corsHeaders })
+    return NextResponse.json(stats, { headers: getCorsHeaders(request) })
   } catch (error) {
     console.error('Failed to get GitHub stats:', error)
     return NextResponse.json(
       { error: 'Failed to retrieve stats' },
-      { status: 500, headers: corsHeaders },
+      { status: 500, headers: getCorsHeaders(request) },
     )
   }
 }
@@ -142,6 +160,8 @@ export async function GET() {
 // POST: Refresh stats from GitHub (can be called by cron job)
 export async function POST(request: Request) {
   try {
+    const corsHeaders = getCorsHeaders(request)
+
     // Optional: Add a secret key check for the cron job
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
@@ -188,7 +208,7 @@ export async function POST(request: Request) {
     console.error('Failed to update GitHub stats:', error)
     return NextResponse.json(
       { error: 'Failed to update stats' },
-      { status: 500, headers: corsHeaders },
+      { status: 500, headers: getCorsHeaders(request) },
     )
   }
 }
