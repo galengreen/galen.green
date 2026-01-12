@@ -33,6 +33,7 @@ const developmentOrigins = Array.from(
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
+  localization: false,
   admin: {
     user: Users.slug,
     meta: {
