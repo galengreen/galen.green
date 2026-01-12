@@ -57,4 +57,4 @@ media/
 !cms/.env.example
 
 # Documentation (generated/audit files)
-docs/
+docs/HOSTING_AUDIT.md
