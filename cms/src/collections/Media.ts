@@ -30,6 +30,7 @@ export const Media: CollectionConfig = {
   upload: {
     staticDir: '../media',
     mimeTypes: ['image/*'],
+    filesRequiredOnCreate: false,
     imageSizes: [
       {
         name: 'thumbnail',
@@ -61,21 +62,25 @@ export const Media: CollectionConfig = {
             data.alt = filenameToTitle(req.file.name)
           }
 
-          // Extract EXIF date taken from image
-          try {
-            const exif = await exifr.parse(req.file.data, {
-              pick: ['DateTimeOriginal', 'CreateDate', 'ModifyDate'],
-            })
+          // Extract EXIF date taken from image (only for reasonable file sizes)
+          // Skip EXIF parsing for very large files to avoid performance issues
+          const maxSizeForExif = 50 * 1024 * 1024 // 50MB
+          if (req.file.data.length <= maxSizeForExif) {
+            try {
+              const exif = await exifr.parse(req.file.data, {
+                pick: ['DateTimeOriginal', 'CreateDate', 'ModifyDate'],
+              })
 
-            if (exif) {
-              // Try DateTimeOriginal first, then CreateDate, then ModifyDate
-              const dateTaken = exif.DateTimeOriginal || exif.CreateDate || exif.ModifyDate
-              if (dateTaken instanceof Date) {
-                data.dateTaken = dateTaken.toISOString()
+              if (exif) {
+                // Try DateTimeOriginal first, then CreateDate, then ModifyDate
+                const dateTaken = exif.DateTimeOriginal || exif.CreateDate || exif.ModifyDate
+                if (dateTaken instanceof Date) {
+                  data.dateTaken = dateTaken.toISOString()
+                }
               }
+            } catch {
+              // EXIF extraction failed - not all images have EXIF data
             }
-          } catch {
-            // EXIF extraction failed - not all images have EXIF data
           }
         }
         return data
