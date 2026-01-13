@@ -1,17 +1,32 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { getImageUrl } from '@/composables/useMedia'
-import type { About } from '@/types'
+import type { About, Media } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   about: About | null
   firstName: string
   lastName: string
+  backgroundImage?: Media
   visible: boolean
 }>()
+
+const backgroundStyle = computed(() => {
+  if (!props.backgroundImage) return {}
+  const url = getImageUrl(props.backgroundImage, 'large')
+  return {
+    backgroundImage: `url(${url})`,
+  }
+})
 </script>
 
 <template>
-  <section id="hero" class="hero-section fade-in" :class="{ visible }">
+  <section
+    id="hero"
+    class="hero-section fade-in"
+    :class="{ visible, 'has-background': backgroundImage }"
+    :style="backgroundStyle"
+  >
     <div class="hero-content container">
       <div class="hero-image">
         <img
@@ -41,6 +56,31 @@ defineProps<{
   display: flex;
   align-items: center;
   padding: var(--space-16) 0;
+  position: relative;
+}
+
+.hero-section.has-background {
+  min-height: 100vh;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.hero-section.has-background::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    rgba(var(--color-background-rgb), 0.4) 0%,
+    rgba(var(--color-background-rgb), 0.7) 100%
+  );
+  z-index: 0;
+}
+
+.hero-section.has-background .hero-content {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-content {
@@ -94,6 +134,10 @@ defineProps<{
     padding: var(--space-8) 0;
   }
 
+  .hero-section.has-background {
+    min-height: 100vh;
+  }
+
   .hero-content {
     grid-template-columns: 1fr;
     text-align: center;
@@ -118,6 +162,10 @@ defineProps<{
 @media (max-width: 480px) {
   .hero-section {
     min-height: 60vh;
+  }
+
+  .hero-section.has-background {
+    min-height: 100vh;
   }
 
   .hero-name {

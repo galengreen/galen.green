@@ -78,6 +78,7 @@ export interface SiteSettings {
     last: string
   }
   email: string
+  heroBackground?: Media
   socials: SocialLink[]
   sectionTitles: {
     about: string

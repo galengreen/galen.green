@@ -48,6 +48,15 @@ export const SiteSettings: GlobalConfig = {
                 description: 'Contact email address (also receives contact form notifications)',
               },
             },
+            {
+              name: 'heroBackground',
+              type: 'upload',
+              relationTo: 'media',
+              admin: {
+                description:
+                  'Background image for the hero section (square image recommended, will cover full viewport)',
+              },
+            },
           ],
         },
         {

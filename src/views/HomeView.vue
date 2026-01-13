@@ -128,6 +128,7 @@ onMounted(async () => {
         :about="about"
         :first-name="siteName.first"
         :last-name="siteName.last"
+        :background-image="siteSettings?.heroBackground"
         :visible="isVisible('hero')"
       />
     </div>
