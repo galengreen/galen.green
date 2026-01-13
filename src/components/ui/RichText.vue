@@ -27,14 +27,16 @@ const props = defineProps<{
   content: LexicalRoot | unknown
 }>()
 
-// CMS URL for media files
-const CMS_URL = import.meta.env.VITE_PAYLOAD_URL || 'http://localhost:3000'
-
+// Convert URL to relative path for proxying
 const getMediaUrl = (url: string) => {
-  if (url && url.startsWith('/')) {
-    return `${CMS_URL}${url}`
+  if (!url) return ''
+  // Strip domain to make it relative for proxying
+  try {
+    const parsed = new URL(url, 'http://localhost')
+    return parsed.pathname
+  } catch {
+    return url
   }
-  return url
 }
 
 // Convert Lexical format bitmask to classes

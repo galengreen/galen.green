@@ -1,70 +1,51 @@
 <script setup lang="ts">
-import Galleria from "primevue/galleria";
-import { computed } from "vue";
-import type { Media, ProjectImage } from "@/types";
+import Galleria from 'primevue/galleria'
+import { computed } from 'vue'
+import { getImageUrl } from '@/composables/useMedia'
+import type { ProjectImage } from '@/types'
 
 const props = defineProps<{
-  images: ProjectImage[];
-  projectTitle: string;
-}>();
-
-// CMS URL for media files
-const CMS_URL = import.meta.env.VITE_PAYLOAD_URL || "http://localhost:3000";
+  images: ProjectImage[]
+  projectTitle: string
+}>()
 
 // Transform images for Galleria format
 const galleriaImages = computed(() => {
   return props.images.map((img, index) => ({
-    itemImageSrc: getImageUrl(img.image, "large"),
-    thumbnailImageSrc: getImageUrl(img.image, "thumbnail"),
+    itemImageSrc: getImageUrl(img.image, 'large'),
+    thumbnailImageSrc: getImageUrl(img.image, 'thumbnail'),
     alt: img.caption || `${props.projectTitle} screenshot ${index + 1}`,
     caption: img.caption,
-  }));
-});
-
-// Get image URL with size variant
-function getImageUrl(
-  media: Media,
-  size?: "thumbnail" | "medium" | "large",
-): string {
-  if (!media) return "";
-
-  const sized = media as { sizes?: Record<string, { url: string }> };
-  let url = "";
-
-  if (size && sized.sizes?.[size]?.url) {
-    url = sized.sizes[size].url;
-  } else {
-    url = media.url || "";
-  }
-
-  if (url && url.startsWith("/")) {
-    return `${CMS_URL}${url}`;
-  }
-
-  return url;
-}
+  }))
+})
 
 // Responsive options for thumbnails
 const responsiveOptions = [
   {
-    breakpoint: "1024px",
+    breakpoint: '1024px',
     numVisible: 5,
   },
   {
-    breakpoint: "768px",
+    breakpoint: '768px',
     numVisible: 3,
   },
   {
-    breakpoint: "480px",
+    breakpoint: '480px',
     numVisible: 2,
   },
-];
+]
 </script>
 
 <template>
   <div class="project-gallery">
-    <Galleria :value="galleriaImages" :responsiveOptions="responsiveOptions" :numVisible="5" :circular="true"
-      :showItemNavigators="galleriaImages.length > 1" :showThumbnails="galleriaImages.length > 1" :pt="{
+    <Galleria
+      :value="galleriaImages"
+      :responsiveOptions="responsiveOptions"
+      :numVisible="5"
+      :circular="true"
+      :showItemNavigators="galleriaImages.length > 1"
+      :showThumbnails="galleriaImages.length > 1"
+      :pt="{
         root: { class: 'galleria-root' },
         content: { class: 'galleria-content' },
         itemsContainer: { class: 'galleria-items-container' },
@@ -76,7 +57,8 @@ const responsiveOptions = [
         nextItemButton: { class: 'galleria-nav galleria-nav-next' },
         previousThumbnailButton: { class: 'galleria-thumb-nav galleria-thumb-nav-prev' },
         nextThumbnailButton: { class: 'galleria-thumb-nav galleria-thumb-nav-next' },
-      }">
+      }"
+    >
       <template #item="slotProps">
         <img :src="slotProps.item.itemImageSrc" :alt="slotProps.item.alt" class="gallery-image" />
         <div v-if="slotProps.item.caption" class="gallery-caption">
@@ -84,7 +66,11 @@ const responsiveOptions = [
         </div>
       </template>
       <template #thumbnail="slotProps">
-        <img :src="slotProps.item.thumbnailImageSrc" :alt="slotProps.item.alt" class="gallery-thumbnail" />
+        <img
+          :src="slotProps.item.thumbnailImageSrc"
+          :alt="slotProps.item.alt"
+          class="gallery-thumbnail"
+        />
       </template>
     </Galleria>
   </div>

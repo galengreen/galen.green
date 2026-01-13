@@ -100,6 +100,7 @@ const getContributionText = (count: number): string => {
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   padding: var(--space-6);
+  box-shadow: var(--shadow-md);
 }
 
 .graph-header {

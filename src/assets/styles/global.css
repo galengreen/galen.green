@@ -126,6 +126,7 @@ body {
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--space-4);
+  box-shadow: var(--shadow-md);
   transition:
     transform var(--duration-normal) var(--ease-out),
     box-shadow var(--duration-normal) var(--ease-out);
@@ -139,13 +140,10 @@ body {
 /* Container */
 .container {
   width: 100%;
-  max-width: var(--content-width);
-  margin: 0 auto;
-  padding: 0 var(--space-6);
 }
 
 .container-narrow {
-  max-width: var(--content-narrow);
+  width: 100%;
 }
 
 /* Section spacing */

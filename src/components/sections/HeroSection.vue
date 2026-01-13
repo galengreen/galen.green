@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { getImageUrl } from '@/composables/useMedia'
 import { useTheme } from '@/composables/useTheme'
 import type { About, Media } from '@/types'
@@ -17,14 +17,63 @@ const { isDark } = useTheme()
 
 const hasBackground = computed(() => props.backgroundImageLight || props.backgroundImageDark)
 
-const backgroundStyle = computed(() => {
+const lightImageUrl = computed(() =>
+  props.backgroundImageLight ? getImageUrl(props.backgroundImageLight, 'large') : null,
+)
+const darkImageUrl = computed(() =>
+  props.backgroundImageDark ? getImageUrl(props.backgroundImageDark, 'large') : null,
+)
+
+const backgroundImage = computed(() => {
   const image = isDark.value ? props.backgroundImageDark : props.backgroundImageLight
-  if (!image) return {}
-  const url = getImageUrl(image, 'large')
+  const url = isDark.value ? darkImageUrl.value : lightImageUrl.value
+  if (!image || !url) return null
   return {
-    backgroundImage: `url(${url})`,
+    url,
+    alt: image.alt || 'Hero background',
   }
 })
+
+// Preload both images so theme switching is instant
+const preloadImage = (url: string | null) => {
+  if (url) {
+    const img = new Image()
+    img.src = url
+  }
+}
+
+// Parallax effect - image scrolls faster than content
+const parallaxOffset = ref(0)
+const PARALLAX_SPEED = 0.3 // Extra scroll speed (image moves 1.4x faster)
+let scrollContainer: HTMLElement | null = null
+
+const handleScroll = () => {
+  if (scrollContainer) {
+    parallaxOffset.value = scrollContainer.scrollTop * PARALLAX_SPEED
+  }
+}
+
+onMounted(() => {
+  // Preload both theme images
+  preloadImage(lightImageUrl.value)
+  preloadImage(darkImageUrl.value)
+
+  // Set up parallax scroll listener
+  scrollContainer = document.getElementById('scroll-root')
+  if (scrollContainer) {
+    scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
+  }
+})
+
+onUnmounted(() => {
+  if (scrollContainer) {
+    scrollContainer.removeEventListener('scroll', handleScroll)
+  }
+})
+
+const parallaxStyle = computed(() => ({
+  transform: `translateY(${parallaxOffset.value}px)`,
+}))
 </script>
 
 <template>
@@ -32,8 +81,14 @@ const backgroundStyle = computed(() => {
     id="hero"
     class="hero-section fade-in"
     :class="{ visible, 'has-background': hasBackground }"
-    :style="backgroundStyle"
   >
+    <img
+      v-if="backgroundImage"
+      :src="backgroundImage.url"
+      :alt="backgroundImage.alt"
+      class="hero-background"
+      :style="parallaxStyle"
+    />
     <div class="hero-content container">
       <div class="hero-image">
         <img
@@ -70,9 +125,25 @@ const backgroundStyle = computed(() => {
   min-height: 100vh;
   margin-top: calc(-1 * (var(--navbar-height) + var(--navbar-top) + var(--space-8)));
   padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-16));
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  overflow: visible;
+}
+
+.hero-background {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  z-index: 0;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.hero-section.has-background .hero-content {
+  position: relative;
+  z-index: 1;
 }
 
 .hero-content {
@@ -80,25 +151,31 @@ const backgroundStyle = computed(() => {
   grid-template-columns: 1fr 1fr;
   gap: var(--space-12);
   align-items: center;
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
 }
 
 .hero-photo {
   max-width: 400px;
   width: 100%;
+  aspect-ratio: 1/1;
   object-fit: cover;
-  border-radius: var(--space-4);
+  border-radius: 50%;
+  box-shadow: var(--shadow-md);
 }
 
 .hero-image-placeholder {
-  aspect-ratio: 3/4;
+  aspect-ratio: 1/1;
   max-width: 400px;
   background-color: var(--color-surface);
   border: 1px solid var(--color-border);
-  border-radius: var(--space-4);
+  border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   color: var(--color-text-subtle);
+  box-shadow: var(--shadow-md);
 }
 
 .hero-text {

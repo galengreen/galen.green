@@ -18,13 +18,15 @@ defineProps<{
     <div class="container container-narrow">
       <h2 class="section-title">{{ title }}</h2>
 
-      <div v-if="loadingAbout" class="loading-placeholder">
-        <div class="skeleton skeleton-text"></div>
-        <div class="skeleton skeleton-text"></div>
-        <div class="skeleton skeleton-text short"></div>
-      </div>
-      <div v-else-if="about?.content" class="about-content">
-        <RichText :content="about.content" />
+      <div class="about-card card">
+        <div v-if="loadingAbout" class="loading-placeholder">
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text"></div>
+          <div class="skeleton skeleton-text short"></div>
+        </div>
+        <div v-else-if="about?.content" class="about-content">
+          <RichText :content="about.content" />
+        </div>
       </div>
 
       <!-- GitHub Activity -->
@@ -44,6 +46,10 @@ defineProps<{
 </template>
 
 <style scoped>
+.about-card {
+  padding: var(--space-6);
+}
+
 .about-content {
   font-size: var(--text-lg);
   line-height: var(--leading-relaxed);

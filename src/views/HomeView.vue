@@ -134,55 +134,63 @@ onMounted(async () => {
       />
     </div>
 
-    <div ref="aboutRef">
-      <AboutSection
-        :title="sectionTitles.about"
-        :about="about"
-        :github-stats="githubStats"
-        :loading-about="loading.about"
-        :loading-github="loading.github"
-        :visible="isVisible('about')"
-      />
-    </div>
+    <div class="page-content">
+      <div ref="aboutRef">
+        <AboutSection
+          :title="sectionTitles.about"
+          :about="about"
+          :github-stats="githubStats"
+          :loading-about="loading.about"
+          :loading-github="loading.github"
+          :visible="isVisible('about')"
+        />
+      </div>
 
-    <div ref="projectsRef">
-      <ProjectsSection
-        :title="sectionTitles.projects"
-        :projects="projects"
-        :loading="loading.projects"
-        :visible="isVisible('projects')"
-      />
-    </div>
+      <div ref="projectsRef">
+        <ProjectsSection
+          :title="sectionTitles.projects"
+          :projects="projects"
+          :loading="loading.projects"
+          :visible="isVisible('projects')"
+        />
+      </div>
 
-    <div ref="blogRef">
-      <BlogSection
-        :title="sectionTitles.blog"
-        :posts="blogPosts"
-        :loading="loading.blog"
-        :visible="isVisible('blog')"
-      />
-    </div>
+      <div ref="blogRef">
+        <BlogSection
+          :title="sectionTitles.blog"
+          :posts="blogPosts"
+          :loading="loading.blog"
+          :visible="isVisible('blog')"
+        />
+      </div>
 
-    <div ref="photosRef">
-      <PhotosSection
-        :title="sectionTitles.photos"
-        :photos="photos"
-        :loading="loading.photos"
-        :visible="isVisible('photos')"
-      />
-    </div>
+      <div ref="photosRef">
+        <PhotosSection
+          :title="sectionTitles.photos"
+          :photos="photos"
+          :loading="loading.photos"
+          :visible="isVisible('photos')"
+        />
+      </div>
 
-    <div ref="contactRef">
-      <ContactSection :title="sectionTitles.contact" :visible="isVisible('contact')" />
-    </div>
+      <div ref="contactRef">
+        <ContactSection :title="sectionTitles.contact" :visible="isVisible('contact')" />
+      </div>
 
-    <FooterSection :name="siteSettings?.name" :socials="siteSettings?.socials" />
+      <FooterSection :name="siteSettings?.name" :socials="siteSettings?.socials" />
+    </div>
   </div>
 </template>
 
 <style scoped>
 .home {
   padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-8));
+}
+
+.page-content {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
 }
 
 @media (max-width: 768px) {

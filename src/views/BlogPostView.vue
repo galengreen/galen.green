@@ -9,8 +9,6 @@ import FooterSection from '@/components/sections/FooterSection.vue'
 const route = useRoute()
 const router = useRouter()
 
-const CMS_URL = import.meta.env.VITE_PAYLOAD_URL || 'http://localhost:3000'
-
 const post = ref<BlogPost | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
@@ -47,10 +45,14 @@ const formatDate = (dateString: string) => {
 }
 
 const getImageUrl = (url: string) => {
-  if (url && url.startsWith('/')) {
-    return `${CMS_URL}${url}`
+  if (!url) return ''
+  // Strip domain to make it relative for proxying
+  try {
+    const parsed = new URL(url, 'http://localhost')
+    return parsed.pathname
+  } catch {
+    return url
   }
-  return url
 }
 
 onMounted(() => {

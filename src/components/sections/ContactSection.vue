@@ -150,6 +150,7 @@ const submitContact = async () => {
   background-color: var(--color-surface);
   border-radius: var(--space-2);
   text-align: center;
+  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 480px) {

@@ -88,6 +88,7 @@ const photosWithDimensions = computed(() => {
 .photo-item {
   overflow: hidden;
   border-radius: var(--space-2);
+  box-shadow: var(--shadow-md);
 }
 
 .photo-image {
@@ -108,6 +109,7 @@ const photosWithDimensions = computed(() => {
   padding: var(--space-4);
   background-color: var(--color-surface);
   border-radius: var(--space-2);
+  box-shadow: var(--shadow-md);
 }
 
 .photo-full {
