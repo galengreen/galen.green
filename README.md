@@ -39,7 +39,21 @@ Personal website built with Vue 3, Payload CMS, and MongoDB, self-hosted on True
 - Node.js ^20.19.0 or >=22.12.0
 - Docker (for MongoDB, or use remote CMS)
 
-### Option 1: Full Local Stack
+### Option 1: Local Frontend with Production CMS (Recommended)
+
+The fastest way to develop frontend features using production data:
+
+```sh
+# Install frontend dependencies
+npm install
+
+# Start with production CMS (proxied through Vite)
+npm run dev:prod
+```
+
+### Option 2: Full Local Stack
+
+For CMS development or offline work:
 
 ```sh
 # Install dependencies
@@ -48,21 +62,6 @@ cd cms && npm install && cd ..
 
 # Start everything with Docker Compose
 docker-compose up -d
-```
-
-### Option 2: Local Frontend with Remote CMS
-
-For faster frontend development against an existing CMS:
-
-```sh
-# Install frontend dependencies
-npm install
-
-# Point to remote CMS (e.g., production or Tailscale IP)
-echo "VITE_PAYLOAD_URL=https://galen.green" > .env
-
-# Start Vite dev server
-npm run dev
 ```
 
 ### Option 3: Individual Services
@@ -74,20 +73,33 @@ docker run -d --name mongodb -p 27017:27017 mongo:7
 # Terminal 2 - CMS
 cd cms && npm run dev
 
-# Terminal 3 - Vue
+# Terminal 3 - Vue (connects to local CMS by default)
 npm run dev
+```
+
+### Custom CMS URL
+
+You can point to any CMS instance:
+
+```sh
+# Via Tailscale
+CMS_URL=http://100.99.201.124:3000 npm run dev
+
+# Via public URL
+CMS_URL=https://galen.green npm run dev
 ```
 
 ## Commands
 
-| Command              | Description                |
-| -------------------- | -------------------------- |
-| `npm run dev`        | Start Vite dev server      |
-| `npm run build`      | Build for production       |
-| `npm run lint`       | Lint with ESLint           |
-| `npm run type-check` | Type check with vue-tsc    |
-| `npm run test:unit`  | Run unit tests (Vitest)    |
-| `npm run test:e2e`   | Run E2E tests (Playwright) |
+| Command              | Description                       |
+| -------------------- | --------------------------------- |
+| `npm run dev`        | Start dev server (local CMS)      |
+| `npm run dev:prod`   | Start dev server (production CMS) |
+| `npm run build`      | Build for production              |
+| `npm run lint`       | Lint with ESLint                  |
+| `npm run type-check` | Type check with vue-tsc           |
+| `npm run test:unit`  | Run unit tests (Vitest)           |
+| `npm run test:e2e`   | Run E2E tests (Playwright)        |
 
 ### CMS Commands
 
