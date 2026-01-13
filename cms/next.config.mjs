@@ -12,6 +12,20 @@ const nextConfig = {
   turbopack: {
     root: process.cwd(),
   },
+  // Allow cross-origin media loading in development
+  async headers() {
+    return [
+      {
+        source: '/media/:path*',
+        headers: [
+          {
+            key: 'Cross-Origin-Resource-Policy',
+            value: 'cross-origin',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 export default withPayload(nextConfig)
