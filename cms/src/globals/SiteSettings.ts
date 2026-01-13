@@ -50,12 +50,29 @@ export const SiteSettings: GlobalConfig = {
             },
             {
               name: 'heroBackground',
-              type: 'upload',
-              relationTo: 'media',
+              type: 'group',
+              label: 'Hero Background',
               admin: {
-                description:
-                  'Background image for the hero section (square image recommended, will cover full viewport)',
+                description: 'Background images for the hero section (square images recommended)',
               },
+              fields: [
+                {
+                  name: 'light',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description: 'Background image for light mode',
+                  },
+                },
+                {
+                  name: 'dark',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description: 'Background image for dark mode',
+                  },
+                },
+              ],
             },
           ],
         },

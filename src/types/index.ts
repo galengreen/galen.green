@@ -78,7 +78,10 @@ export interface SiteSettings {
     last: string
   }
   email: string
-  heroBackground?: Media
+  heroBackground?: {
+    light?: Media
+    dark?: Media
+  }
   socials: SocialLink[]
   sectionTitles: {
     about: string

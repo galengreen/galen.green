@@ -1,19 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import { getImageUrl } from '@/composables/useMedia'
+import { useTheme } from '@/composables/useTheme'
 import type { About, Media } from '@/types'
 
 const props = defineProps<{
   about: About | null
   firstName: string
   lastName: string
-  backgroundImage?: Media
+  backgroundImageLight?: Media
+  backgroundImageDark?: Media
   visible: boolean
 }>()
 
+const { isDark } = useTheme()
+
+const hasBackground = computed(() => props.backgroundImageLight || props.backgroundImageDark)
+
 const backgroundStyle = computed(() => {
-  if (!props.backgroundImage) return {}
-  const url = getImageUrl(props.backgroundImage, 'large')
+  const image = isDark.value ? props.backgroundImageDark : props.backgroundImageLight
+  if (!image) return {}
+  const url = getImageUrl(image, 'large')
   return {
     backgroundImage: `url(${url})`,
   }
@@ -24,7 +31,7 @@ const backgroundStyle = computed(() => {
   <section
     id="hero"
     class="hero-section fade-in"
-    :class="{ visible, 'has-background': backgroundImage }"
+    :class="{ visible, 'has-background': hasBackground }"
     :style="backgroundStyle"
   >
     <div class="hero-content container">
@@ -61,26 +68,11 @@ const backgroundStyle = computed(() => {
 
 .hero-section.has-background {
   min-height: 100vh;
+  margin-top: calc(-1 * (var(--navbar-height) + var(--navbar-top) + var(--space-8)));
+  padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-16));
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-}
-
-.hero-section.has-background::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    to bottom,
-    rgba(var(--color-background-rgb), 0.4) 0%,
-    rgba(var(--color-background-rgb), 0.7) 100%
-  );
-  z-index: 0;
-}
-
-.hero-section.has-background .hero-content {
-  position: relative;
-  z-index: 1;
 }
 
 .hero-content {
@@ -136,6 +128,8 @@ const backgroundStyle = computed(() => {
 
   .hero-section.has-background {
     min-height: 100vh;
+    margin-top: calc(-1 * (var(--navbar-height) + var(--navbar-top) + var(--space-4)));
+    padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-8));
   }
 
   .hero-content {
@@ -166,6 +160,8 @@ const backgroundStyle = computed(() => {
 
   .hero-section.has-background {
     min-height: 100vh;
+    margin-top: calc(-1 * (var(--navbar-height) + var(--navbar-top) + var(--space-4)));
+    padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-8));
   }
 
   .hero-name {
