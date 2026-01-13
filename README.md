@@ -1,30 +1,71 @@
 # galen.green
 
-Personal website built with Vue 3, Payload CMS, and MongoDB.
+Personal website built with Vue 3, Payload CMS, and MongoDB, self-hosted on TrueNAS Scale.
+
+## Tech Stack
+
+| Layer    | Technology                        |
+| -------- | --------------------------------- |
+| Frontend | Vue 3, TypeScript, Vite, PrimeVue |
+| CMS      | Payload CMS 3, Next.js 15         |
+| Database | MongoDB 7                         |
+| Hosting  | TrueNAS Scale (Docker)            |
+| CI/CD    | GitHub Actions                    |
+| Registry | GitHub Container Registry         |
 
 ## Project Structure
 
-- **Frontend**: Vue 3 + Vite (root directory)
-- **CMS**: Payload CMS (cms directory)
-- **Database**: MongoDB
+```
+├── src/                  # Vue 3 frontend
+├── cms/                  # Payload CMS
+├── nginx/                # Nginx reverse proxy config
+├── docs/                 # Hosting and deployment documentation
+└── .github/workflows/    # CI/CD pipelines
+```
+
+## Documentation
+
+| Document                                     | Description                          |
+| -------------------------------------------- | ------------------------------------ |
+| [docs/HOSTING.md](docs/HOSTING.md)           | Hosting overview and quick reference |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture diagrams         |
+| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)     | Deployment procedures                |
+| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)   | Environment variables reference      |
 
 ## Development Setup
 
 ### Prerequisites
 
 - Node.js ^20.19.0 or >=22.12.0
-- Docker (for MongoDB)
+- Docker (for MongoDB, or use remote CMS)
 
-### Getting Started
-
-1. Clone and install dependencies:
+### Option 1: Full Local Stack
 
 ```sh
+# Install dependencies
 npm install
-cd cms && npm install
+cd cms && npm install && cd ..
+
+# Start everything with Docker Compose
+docker-compose up -d
 ```
 
-2. Start MongoDB, CMS, and Vue dev servers in separate terminals:
+### Option 2: Local Frontend with Remote CMS
+
+For faster frontend development against an existing CMS:
+
+```sh
+# Install frontend dependencies
+npm install
+
+# Point to remote CMS (e.g., production or Tailscale IP)
+echo "VITE_PAYLOAD_URL=https://galen.green" > .env
+
+# Start Vite dev server
+npm run dev
+```
+
+### Option 3: Individual Services
 
 ```sh
 # Terminal 1 - MongoDB
@@ -37,80 +78,35 @@ cd cms && npm run dev
 npm run dev
 ```
 
-Alternatively, use Docker Compose:
+## Commands
 
-```sh
-docker-compose up -d
-```
+| Command              | Description                |
+| -------------------- | -------------------------- |
+| `npm run dev`        | Start Vite dev server      |
+| `npm run build`      | Build for production       |
+| `npm run lint`       | Lint with ESLint           |
+| `npm run type-check` | Type check with vue-tsc    |
+| `npm run test:unit`  | Run unit tests (Vitest)    |
+| `npm run test:e2e`   | Run E2E tests (Playwright) |
 
-## Recommended IDE Setup
+### CMS Commands
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) (and disable Vetur).
+| Command                            | Description               |
+| ---------------------------------- | ------------------------- |
+| `cd cms && npm run dev`            | Start Payload dev server  |
+| `cd cms && npm run build`          | Build for production      |
+| `cd cms && npm run generate:types` | Generate TypeScript types |
 
-## Recommended Browser Setup
+## IDE Setup
 
-- Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-  - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
-- Firefox:
-  - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
-  - [Turn on Custom Object Formatter in Firefox DevTools](https://fxdx.dev/firefox-devtools-custom-object-formatters/)
+[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) extension.
 
-## Type Support for `.vue` Imports in TS
+## Browser DevTools
 
-TypeScript cannot handle type information for `.vue` imports by default, so we replace the `tsc` CLI with `vue-tsc` for type checking. In editors, we need [Volar](https://marketplace.visualstudio.com/items?itemName=Vue.volar) to make the TypeScript language service aware of `.vue` types.
+- **Chrome/Edge**: [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
+- **Firefox**: [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
 
-## Customize configuration
+## Configuration
 
-See [Vite Configuration Reference](https://vite.dev/config/) and [Payload CMS Documentation](https://payloadcms.com/docs).
-
-## Build for Production
-
-### Vue Frontend
-
-```sh
-npm run build
-```
-
-### Payload CMS
-
-```sh
-cd cms && npm run build
-```
-
-### Type-Check, Compile and Minify for Production
-
-```sh
-npm run build
-```
-
-### Run Unit Tests with [Vitest](https://vitest.dev/)
-
-```sh
-npm run test:unit
-```
-
-### Run End-to-End Tests with [Playwright](https://playwright.dev)
-
-```sh
-# Install browsers for the first run
-npx playwright install
-
-# When testing on CI, must build the project first
-npm run build
-
-# Runs the end-to-end tests
-npm run test:e2e
-# Runs the tests only on Chromium
-npm run test:e2e -- --project=chromium
-# Runs the tests of a specific file
-npm run test:e2e -- tests/example.spec.ts
-# Runs the tests in debug mode
-npm run test:e2e -- --debug
-```
-
-### Lint with [ESLint](https://eslint.org/)
-
-```sh
-npm run lint
-```
+- [Vite Configuration](https://vite.dev/config/)
+- [Payload CMS Documentation](https://payloadcms.com/docs)
