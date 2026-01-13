@@ -1,15 +1,28 @@
 /**
  * Composable for media URL handling and date formatting
+ *
+ * All media URLs are converted to relative paths and proxied:
+ * - In development: Vite proxies to CMS_URL (local or remote)
+ * - In production: nginx proxies to CMS container
  */
 
-// In production, nginx proxies /media/ and /api/ to the CMS, so we use relative URLs.
-// In development, the CMS runs on a different port, so we need the full URL.
-const CMS_URL = import.meta.env.PROD
-  ? ''
-  : import.meta.env.VITE_PAYLOAD_URL || 'http://localhost:3000'
+/**
+ * Convert absolute URL to relative path for proxying
+ */
+function toRelativeUrl(url: string): string {
+  if (!url) return ''
+  // Strip any domain to make it relative (e.g., https://galen.green/api/media/... → /api/media/...)
+  try {
+    const parsed = new URL(url, 'http://localhost')
+    return parsed.pathname
+  } catch {
+    return url
+  }
+}
 
 /**
- * Get the full URL for a media item, optionally at a specific size
+ * Get the URL for a media item, optionally at a specific size
+ * Always returns a relative URL for proxying
  */
 export function getImageUrl(
   media: { url?: string; sizes?: Record<string, { url?: string }> } | undefined,
@@ -17,20 +30,11 @@ export function getImageUrl(
 ): string {
   if (!media) return ''
 
-  let url = ''
-
   if (size && media.sizes?.[size]?.url) {
-    url = media.sizes[size].url || ''
-  } else {
-    url = media.url || ''
+    return toRelativeUrl(media.sizes[size].url || '')
   }
 
-  // Prepend CMS URL if it's a relative path (only in development)
-  if (url && url.startsWith('/')) {
-    return `${CMS_URL}${url}`
-  }
-
-  return url
+  return toRelativeUrl(media.url || '')
 }
 
 /**
@@ -51,6 +55,5 @@ export function useMedia() {
   return {
     getImageUrl,
     formatDate,
-    cmsUrl: CMS_URL,
   }
 }
