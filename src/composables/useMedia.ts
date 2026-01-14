@@ -6,7 +6,7 @@
  * - In production: nginx proxies to CMS container
  */
 
-import type { ImageSizeName, Media } from '@/types'
+import type { AllImageSizeName, ImageSizeName, ImageSizeNameAvif, Media } from '@/types'
 
 // Image size widths for srcset generation
 const IMAGE_SIZE_WIDTHS: Record<ImageSizeName, number> = {
@@ -24,6 +24,19 @@ const IMAGE_SIZE_WIDTHS: Record<ImageSizeName, number> = {
 
 // Ordered responsive sizes for srcset (smallest to largest)
 const RESPONSIVE_SIZES: ImageSizeName[] = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl']
+
+// Map base size to AVIF size name
+const toAvifSize = (size: ImageSizeName): ImageSizeNameAvif | null => {
+  const avifSizes: Record<string, ImageSizeNameAvif> = {
+    xs: 'xs-avif',
+    sm: 'sm-avif',
+    md: 'md-avif',
+    lg: 'lg-avif',
+    xl: 'xl-avif',
+    xxl: 'xxl-avif',
+  }
+  return avifSizes[size] || null
+}
 
 /**
  * Convert absolute URL to relative path for proxying
@@ -45,7 +58,7 @@ function toRelativeUrl(url: string): string {
  */
 export function getImageUrl(
   media: { url?: string; sizes?: Record<string, { url?: string }> } | undefined,
-  size?: ImageSizeName,
+  size?: AllImageSizeName,
 ): string {
   if (!media) return ''
 
@@ -57,7 +70,7 @@ export function getImageUrl(
 }
 
 /**
- * Generate srcset string for responsive images
+ * Generate srcset string for responsive images (WebP format)
  * @param media - Media object with sizes
  * @param sizes - Array of size names to include (defaults to all responsive sizes)
  * @returns srcset string like "url-sm.webp 480w, url-md.webp 768w, ..."
@@ -85,6 +98,48 @@ export function getImageSrcset(
   }
 
   return srcsetParts.join(', ')
+}
+
+/**
+ * Generate srcset string for AVIF format
+ * @param media - Media object with sizes
+ * @param sizes - Array of base size names to include (defaults to all responsive sizes)
+ * @returns srcset string like "url-sm-avif.avif 480w, url-md-avif.avif 768w, ..."
+ */
+export function getImageSrcsetAvif(
+  media: Media | undefined,
+  sizes: ImageSizeName[] = RESPONSIVE_SIZES,
+): string {
+  if (!media?.sizes) return ''
+
+  const srcsetParts: string[] = []
+
+  for (const size of sizes) {
+    const avifSize = toAvifSize(size)
+    if (!avifSize) continue
+
+    const sizeData = media.sizes[avifSize]
+    if (sizeData?.url) {
+      const url = toRelativeUrl(sizeData.url)
+      const width = sizeData.width || IMAGE_SIZE_WIDTHS[size]
+      srcsetParts.push(`${url} ${width}w`)
+    }
+  }
+
+  return srcsetParts.join(', ')
+}
+
+/**
+ * Get both AVIF and WebP srcsets for use in <picture> element
+ */
+export function getImageSrcsets(
+  media: Media | undefined,
+  sizes: ImageSizeName[] = RESPONSIVE_SIZES,
+): { avif: string; webp: string } {
+  return {
+    avif: getImageSrcsetAvif(media, sizes),
+    webp: getImageSrcset(media, sizes),
+  }
 }
 
 /**
@@ -151,6 +206,8 @@ export function useMedia() {
   return {
     getImageUrl,
     getImageSrcset,
+    getImageSrcsetAvif,
+    getImageSrcsets,
     getAllImageUrls,
     imageSizesPresets,
     formatDate,

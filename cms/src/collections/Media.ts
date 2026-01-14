@@ -15,6 +15,55 @@ const filenameToTitle = (filename: string): string => {
     .trim()
 }
 
+// Responsive image widths
+const IMAGE_WIDTHS = {
+  xs: 320,
+  sm: 480,
+  md: 768,
+  lg: 1024,
+  xl: 1400,
+  xxl: 1920,
+} as const
+
+// Generate image size config for a given width and format
+const createImageSize = (
+  name: string,
+  width: number,
+  format: 'webp' | 'avif',
+  quality: number,
+) => ({
+  name: format === 'webp' ? name : `${name}-avif`,
+  width,
+  height: undefined,
+  position: 'centre' as const,
+  formatOptions: {
+    format,
+    options: { quality },
+  },
+})
+
+// Generate all responsive sizes for both formats
+const generateImageSizes = () => {
+  const sizes: ReturnType<typeof createImageSize>[] = []
+
+  // WebP sizes (quality 85)
+  for (const [name, width] of Object.entries(IMAGE_WIDTHS)) {
+    sizes.push(createImageSize(name, width, 'webp', 85))
+  }
+
+  // AVIF sizes (quality 70 - AVIF achieves similar visual quality at lower values)
+  for (const [name, width] of Object.entries(IMAGE_WIDTHS)) {
+    sizes.push(createImageSize(name, width, 'avif', 70))
+  }
+
+  // Legacy WebP sizes for backwards compatibility
+  sizes.push(createImageSize('thumbnail', 400, 'webp', 85))
+  sizes.push(createImageSize('medium', 800, 'webp', 85))
+  sizes.push(createImageSize('large', 1400, 'webp', 85))
+
+  return sizes
+}
+
 export const Media: CollectionConfig = {
   slug: 'media',
   labels: {
@@ -31,7 +80,7 @@ export const Media: CollectionConfig = {
     staticDir: process.env.MEDIA_DIR || '../media',
     mimeTypes: ['image/*'],
     filesRequiredOnCreate: false,
-    // Generate WebP format for better compression while preserving transparency
+    // Default format for original file (WebP as fallback)
     formatOptions: {
       format: 'webp',
       options: {
@@ -39,64 +88,8 @@ export const Media: CollectionConfig = {
         lossless: false,
       },
     },
-    // Responsive image sizes for optimal loading at different screen sizes
-    imageSizes: [
-      {
-        name: 'xs',
-        width: 320,
-        height: undefined,
-        position: 'centre',
-      },
-      {
-        name: 'sm',
-        width: 480,
-        height: undefined,
-        position: 'centre',
-      },
-      {
-        name: 'md',
-        width: 768,
-        height: undefined,
-        position: 'centre',
-      },
-      {
-        name: 'lg',
-        width: 1024,
-        height: undefined,
-        position: 'centre',
-      },
-      {
-        name: 'xl',
-        width: 1400,
-        height: undefined,
-        position: 'centre',
-      },
-      {
-        name: 'xxl',
-        width: 1920,
-        height: undefined,
-        position: 'centre',
-      },
-      // Keep legacy sizes for backwards compatibility
-      {
-        name: 'thumbnail',
-        width: 400,
-        height: undefined,
-        position: 'centre',
-      },
-      {
-        name: 'medium',
-        width: 800,
-        height: undefined,
-        position: 'centre',
-      },
-      {
-        name: 'large',
-        width: 1400,
-        height: undefined,
-        position: 'centre',
-      },
-    ],
+    // Responsive image sizes in both AVIF and WebP formats
+    imageSizes: generateImageSizes(),
     adminThumbnail: 'thumbnail',
   },
   hooks: {

@@ -38,8 +38,8 @@ const currentMessage = computed(() => {
 
 // Message rotation interval
 let rotationInterval: ReturnType<typeof setInterval> | null = null
-const MESSAGE_INTERVAL = 2500 // 2.5 seconds between messages
-const TRANSITION_DURATION = 300 // ms for fade transition
+const MESSAGE_INTERVAL = 5000 // ms between messages
+const TRANSITION_DURATION = 800 // ms for fade transition
 
 const rotateMessage = () => {
   isTransitioning.value = true

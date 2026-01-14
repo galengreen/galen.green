@@ -5,6 +5,7 @@ const props = withDefaults(
   defineProps<{
     src: string
     srcset?: string
+    srcsetAvif?: string // AVIF srcset for <picture> element
     sizes?: string
     thumbnailSrc?: string
     alt: string
@@ -34,6 +35,9 @@ const paddingBottom = computed(() => {
   }
   return '66.67%' // Default 3:2 aspect ratio
 })
+
+// Check if we should use <picture> element (when AVIF srcset is provided)
+const usePicture = computed(() => !!props.srcsetAvif)
 
 const handleLoad = () => {
   isLoaded.value = true
@@ -109,9 +113,25 @@ onUnmounted(() => {
     <!-- Shimmer placeholder when no thumbnail -->
     <div v-else-if="!isLoaded && !thumbnailSrc" class="image-shimmer"></div>
 
-    <!-- Main image (only loads when in view) -->
+    <!-- Main image with <picture> for AVIF/WebP (only loads when in view) -->
+    <picture v-if="isInView && !hasError && usePicture">
+      <source :srcset="srcsetAvif" :sizes="sizes" type="image/avif" />
+      <source :srcset="srcset" :sizes="sizes" type="image/webp" />
+      <img
+        ref="imageRef"
+        :src="src"
+        :alt="alt"
+        :fetchpriority="fetchpriority"
+        class="image-main"
+        :class="{ visible: isLoaded }"
+        @load="handleLoad"
+        @error="handleError"
+      />
+    </picture>
+
+    <!-- Fallback: simple img when no AVIF srcset -->
     <img
-      v-if="isInView && !hasError"
+      v-else-if="isInView && !hasError"
       ref="imageRef"
       :src="src"
       :srcset="srcset"

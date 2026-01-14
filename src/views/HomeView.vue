@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch, inject, type Ref } from 'vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
 import AboutSection from '@/components/sections/AboutSection.vue'
 import BlogSection from '@/components/sections/BlogSection.vue'
@@ -27,8 +27,10 @@ const blogRef = ref<HTMLElement | null>(null)
 const photosRef = ref<HTMLElement | null>(null)
 const contactRef = ref<HTMLElement | null>(null)
 
+// Get site settings from App.vue (already fetched)
+const siteSettings = inject<Ref<SiteSettings | null>>('siteSettings', ref(null))
+
 // Data refs
-const siteSettings = ref<SiteSettings | null>(null)
 const about = ref<About | null>(null)
 const projects = ref<Project[]>([])
 const blogPosts = ref<BlogPost[]>([])
@@ -37,7 +39,6 @@ const githubStats = ref<GitHubStats | null>(null)
 
 // Loading states
 const loading = ref({
-  site: true,
   about: true,
   projects: true,
   blog: true,
@@ -74,23 +75,16 @@ onMounted(async () => {
     observe('contact', contactRef.value)
   })
 
-  // Fetch in parallel
+  // Fetch in parallel (excluding siteSettings which comes from App.vue)
   const fetchAll = async () => {
     try {
-      const [siteData, aboutData, projectsData, blogData, photosData, githubData] =
-        await Promise.allSettled([
-          api.globals.getSiteSettings(),
-          api.globals.getAbout(),
-          api.projects.getFeatured(),
-          api.blogPosts.getRecent(5),
-          api.photos.getAll(30),
-          api.github.getStats(),
-        ])
-
-      if (siteData.status === 'fulfilled') {
-        siteSettings.value = siteData.value
-      }
-      loading.value.site = false
+      const [aboutData, projectsData, blogData, photosData, githubData] = await Promise.allSettled([
+        api.globals.getAbout(),
+        api.projects.getFeatured(),
+        api.blogPosts.getRecent(5),
+        api.photos.getAll(30),
+        api.github.getStats(),
+      ])
 
       if (aboutData.status === 'fulfilled') {
         about.value = aboutData.value

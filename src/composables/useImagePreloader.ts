@@ -5,7 +5,6 @@
  * - Critical image preloading (hero, portrait, theme backgrounds)
  * - Idle-time prefetching for remaining images
  * - Loading progress tracking
- * - First-visit-only loading screen logic
  */
 
 import { ref, computed } from 'vue'
@@ -18,24 +17,9 @@ const loadedCount = ref(0)
 const totalCount = ref(0)
 const prefetchedUrls = new Set<string>()
 
-// Session storage key for first-visit tracking
-const FIRST_VISIT_KEY = 'app-loaded-this-session'
-
-/**
- * Check if this is the first visit in the current session
- */
-function isFirstVisit(): boolean {
-  if (typeof window === 'undefined') return true
-  return !sessionStorage.getItem(FIRST_VISIT_KEY)
-}
-
-/**
- * Mark that the app has loaded this session
- */
-function markVisited(): void {
-  if (typeof window === 'undefined') return
-  sessionStorage.setItem(FIRST_VISIT_KEY, 'true')
-}
+// Track pending critical image loads
+const pendingLoads = new Set<string>()
+const loadedUrls = new Set<string>()
 
 /**
  * Preload a single image and return a promise
@@ -59,27 +43,45 @@ function preloadImage(url: string): Promise<void> {
 }
 
 /**
+ * Check if all critical images are loaded
+ */
+function checkAllLoaded(): void {
+  if (pendingLoads.size === 0 && loadedUrls.size > 0) {
+    criticalImagesLoaded.value = true
+  }
+}
+
+/**
  * Preload critical images (hero backgrounds, portrait)
- * Returns a promise that resolves when all critical images are loaded
+ * Can be called multiple times - tracks all URLs across calls
  */
 async function preloadCritical(urls: string[]): Promise<void> {
-  const validUrls = urls.filter((url) => url && url.length > 0)
+  const validUrls = urls.filter((url) => url && url.length > 0 && !loadedUrls.has(url))
 
   if (validUrls.length === 0) {
-    criticalImagesLoaded.value = true
+    // If no new URLs and nothing pending, mark as loaded
+    if (pendingLoads.size === 0) {
+      criticalImagesLoaded.value = true
+    }
     return
   }
 
-  totalCount.value = validUrls.length
-  loadedCount.value = 0
+  // Add to pending set
+  for (const url of validUrls) {
+    pendingLoads.add(url)
+  }
+  totalCount.value = pendingLoads.size + loadedUrls.size
 
+  // Load all images
   const promises = validUrls.map(async (url) => {
     await preloadImage(url)
-    loadedCount.value++
+    pendingLoads.delete(url)
+    loadedUrls.add(url)
+    loadedCount.value = loadedUrls.size
+    checkAllLoaded()
   })
 
   await Promise.all(promises)
-  criticalImagesLoaded.value = true
 }
 
 /**
@@ -151,6 +153,8 @@ function reset(): void {
   criticalImagesLoaded.value = false
   loadedCount.value = 0
   totalCount.value = 0
+  pendingLoads.clear()
+  loadedUrls.clear()
 }
 
 /**
@@ -162,23 +166,16 @@ export function useImagePreloader() {
     return Math.round((loadedCount.value / totalCount.value) * 100)
   })
 
-  const shouldShowLoadingScreen = computed(() => {
-    return isFirstVisit() && !criticalImagesLoaded.value
-  })
-
   return {
     // State
     criticalImagesLoaded,
     loadProgress,
-    shouldShowLoadingScreen,
 
     // Methods
     preloadCritical,
     preloadCriticalMedia,
     prefetchOnIdle,
     prefetchMediaOnIdle,
-    markVisited,
-    isFirstVisit,
     reset,
   }
 }

@@ -10,13 +10,20 @@ export interface Media {
   width: number
   height: number
   sizes: {
-    // New responsive sizes
+    // WebP responsive sizes
     xs?: MediaSize
     sm?: MediaSize
     md?: MediaSize
     lg?: MediaSize
     xl?: MediaSize
     xxl?: MediaSize
+    // AVIF responsive sizes
+    'xs-avif'?: MediaSize
+    'sm-avif'?: MediaSize
+    'md-avif'?: MediaSize
+    'lg-avif'?: MediaSize
+    'xl-avif'?: MediaSize
+    'xxl-avif'?: MediaSize
     // Legacy sizes (for backwards compatibility)
     thumbnail?: MediaSize
     medium?: MediaSize
@@ -24,6 +31,7 @@ export interface Media {
   }
 }
 
+// WebP size names (base sizes)
 export type ImageSizeName =
   | 'xs'
   | 'sm'
@@ -34,6 +42,18 @@ export type ImageSizeName =
   | 'thumbnail'
   | 'medium'
   | 'large'
+
+// AVIF size names
+export type ImageSizeNameAvif =
+  | 'xs-avif'
+  | 'sm-avif'
+  | 'md-avif'
+  | 'lg-avif'
+  | 'xl-avif'
+  | 'xxl-avif'
+
+// All size names
+export type AllImageSizeName = ImageSizeName | ImageSizeNameAvif
 
 export interface MediaSize {
   url: string

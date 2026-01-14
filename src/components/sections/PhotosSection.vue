@@ -2,7 +2,13 @@
 import { computed, ref } from 'vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
 import MasonryGrid from '@/components/ui/MasonryGrid.vue'
-import { formatDate, getImageUrl, getImageSrcset, imageSizesPresets } from '@/composables/useMedia'
+import {
+  formatDate,
+  getImageUrl,
+  getImageSrcset,
+  getImageSrcsetAvif,
+  imageSizesPresets,
+} from '@/composables/useMedia'
 import type { Photo } from '@/types'
 
 const props = defineProps<{
@@ -50,6 +56,7 @@ const photosWithDimensions = computed(() => {
             <LazyImage
               :src="getImageUrl(photo.image, 'md')"
               :srcset="getImageSrcset(photo.image)"
+              :srcset-avif="getImageSrcsetAvif(photo.image)"
               :sizes="imageSizesPresets.photoGrid"
               :thumbnail-src="getImageUrl(photo.image, 'xs')"
               :alt="photo.title"
@@ -60,6 +67,7 @@ const photosWithDimensions = computed(() => {
               <LazyImage
                 :src="getImageUrl(photo.image, 'xl')"
                 :srcset="getImageSrcset(photo.image)"
+                :srcset-avif="getImageSrcsetAvif(photo.image)"
                 sizes="100vw"
                 :thumbnail-src="getImageUrl(photo.image, 'md')"
                 :alt="photo.title"

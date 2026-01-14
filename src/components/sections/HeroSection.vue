@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import { getImageUrl, getImageSrcset, imageSizesPresets } from '@/composables/useMedia'
+import {
+  getImageUrl,
+  getImageSrcset,
+  getImageSrcsetAvif,
+  imageSizesPresets,
+} from '@/composables/useMedia'
 import { useTheme } from '@/composables/useTheme'
 import { useImagePreloader } from '@/composables/useImagePreloader'
 import type { About, Media } from '@/types'
@@ -27,7 +32,7 @@ const darkImageUrl = computed(() =>
   props.backgroundImageDark ? getImageUrl(props.backgroundImageDark, 'xl') : null,
 )
 
-// Srcset for responsive hero backgrounds
+// Srcset for responsive hero backgrounds (WebP)
 const lightImageSrcset = computed(() =>
   props.backgroundImageLight ? getImageSrcset(props.backgroundImageLight) : '',
 )
@@ -35,38 +40,38 @@ const darkImageSrcset = computed(() =>
   props.backgroundImageDark ? getImageSrcset(props.backgroundImageDark) : '',
 )
 
+// Srcset for responsive hero backgrounds (AVIF)
+const lightImageSrcsetAvif = computed(() =>
+  props.backgroundImageLight ? getImageSrcsetAvif(props.backgroundImageLight) : '',
+)
+const darkImageSrcsetAvif = computed(() =>
+  props.backgroundImageDark ? getImageSrcsetAvif(props.backgroundImageDark) : '',
+)
+
 // Portrait image
 const portraitUrl = computed(() =>
   props.about?.photo ? getImageUrl(props.about.photo, 'lg') : null,
 )
 const portraitSrcset = computed(() => (props.about?.photo ? getImageSrcset(props.about.photo) : ''))
+const portraitSrcsetAvif = computed(() =>
+  props.about?.photo ? getImageSrcsetAvif(props.about.photo) : '',
+)
 
 // Track which images are loaded for instant theme switching
 const lightLoaded = ref(false)
 const darkLoaded = ref(false)
 
-// Preload both theme images for instant switching
-const preloadBothThemes = async () => {
-  const urlsToPreload: string[] = []
-
-  if (lightImageUrl.value) urlsToPreload.push(lightImageUrl.value)
-  if (darkImageUrl.value) urlsToPreload.push(darkImageUrl.value)
-  if (portraitUrl.value) urlsToPreload.push(portraitUrl.value)
-
-  if (urlsToPreload.length > 0) {
-    await preloadCritical(urlsToPreload)
-  }
-
-  // Mark individual images as loaded
-  if (lightImageUrl.value) lightLoaded.value = true
-  if (darkImageUrl.value) darkLoaded.value = true
-}
-
-// Watch for prop changes and preload when data arrives
+// Preload portrait image when about data arrives
+// (hero backgrounds are preloaded in App.vue)
 watch(
-  () => [props.backgroundImageLight, props.backgroundImageDark, props.about?.photo],
-  () => {
-    preloadBothThemes()
+  () => props.about?.photo,
+  (photo) => {
+    if (photo) {
+      const url = getImageUrl(photo, 'lg')
+      if (url) {
+        preloadCritical([url])
+      }
+    }
   },
   { immediate: true },
 )
@@ -109,45 +114,57 @@ const parallaxStyle = computed(() => ({
   >
     <!-- Preload both theme backgrounds for instant switching -->
     <!-- Light theme background (hidden when dark) -->
-    <img
+    <picture
       v-if="lightImageUrl"
-      :src="lightImageUrl"
-      :srcset="lightImageSrcset"
-      :sizes="imageSizesPresets.hero"
-      alt=""
-      aria-hidden="true"
       class="hero-background hero-background-light"
       :class="{ active: !isDark }"
-      :style="parallaxStyle"
-      fetchpriority="high"
-      @load="lightLoaded = true"
-    />
+    >
+      <source :srcset="lightImageSrcsetAvif" :sizes="imageSizesPresets.hero" type="image/avif" />
+      <source :srcset="lightImageSrcset" :sizes="imageSizesPresets.hero" type="image/webp" />
+      <img
+        :src="lightImageUrl"
+        alt=""
+        aria-hidden="true"
+        :style="parallaxStyle"
+        fetchpriority="high"
+        @load="lightLoaded = true"
+      />
+    </picture>
+
     <!-- Dark theme background (hidden when light) -->
-    <img
+    <picture
       v-if="darkImageUrl"
-      :src="darkImageUrl"
-      :srcset="darkImageSrcset"
-      :sizes="imageSizesPresets.hero"
-      alt=""
-      aria-hidden="true"
       class="hero-background hero-background-dark"
       :class="{ active: isDark }"
-      :style="parallaxStyle"
-      fetchpriority="high"
-      @load="darkLoaded = true"
-    />
+    >
+      <source :srcset="darkImageSrcsetAvif" :sizes="imageSizesPresets.hero" type="image/avif" />
+      <source :srcset="darkImageSrcset" :sizes="imageSizesPresets.hero" type="image/webp" />
+      <img
+        :src="darkImageUrl"
+        alt=""
+        aria-hidden="true"
+        :style="parallaxStyle"
+        fetchpriority="high"
+        @load="darkLoaded = true"
+      />
+    </picture>
 
     <div class="hero-content container">
       <div class="hero-image">
-        <img
-          v-if="about?.photo"
-          :src="portraitUrl || ''"
-          :srcset="portraitSrcset"
-          :sizes="imageSizesPresets.avatar"
-          :alt="about.photo.alt || 'Profile photo'"
-          class="hero-photo"
-          fetchpriority="high"
-        />
+        <picture v-if="about?.photo">
+          <source
+            :srcset="portraitSrcsetAvif"
+            :sizes="imageSizesPresets.avatar"
+            type="image/avif"
+          />
+          <source :srcset="portraitSrcset" :sizes="imageSizesPresets.avatar" type="image/webp" />
+          <img
+            :src="portraitUrl || ''"
+            :alt="about.photo.alt || 'Profile photo'"
+            class="hero-photo"
+            fetchpriority="high"
+          />
+        </picture>
         <div v-else class="hero-image-placeholder"></div>
       </div>
       <div class="hero-text">
@@ -155,7 +172,7 @@ const parallaxStyle = computed(() => ({
           <span class="name-first">{{ firstName }}</span>
           <span class="name-last">{{ lastName }}</span>
         </h1>
-        <p class="hero-subtitle text-muted">
+        <p class="hero-subtitle">
           {{ about?.subtitle }}
         </p>
       </div>
@@ -185,14 +202,19 @@ const parallaxStyle = computed(() => ({
   left: 0;
   width: 100%;
   min-height: 100%;
-  object-fit: cover;
-  object-position: top center;
   z-index: 0;
   pointer-events: none;
-  will-change: transform;
   /* Both backgrounds are rendered but only one is visible */
   opacity: 0;
   transition: opacity 0.3s ease;
+}
+
+.hero-background img {
+  width: 100%;
+  min-height: 100%;
+  object-fit: cover;
+  object-position: top center;
+  will-change: transform;
 }
 
 .hero-background.active {

@@ -1,11 +1,17 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import ProjectGallery from '@/components/ui/ProjectGallery.vue'
 import RichText from '@/components/ui/RichText.vue'
-import { getImageUrl, getImageSrcset, imageSizesPresets } from '@/composables/useMedia'
-import type { Project } from '@/types'
+import {
+  getImageUrl,
+  getImageSrcset,
+  getImageSrcsetAvif,
+  imageSizesPresets,
+} from '@/composables/useMedia'
+import { useImagePreloader } from '@/composables/useImagePreloader'
+import type { Project, Media } from '@/types'
 
-defineProps<{
+const props = defineProps<{
   title: string
   projects: Project[]
   loading: boolean
@@ -13,10 +19,36 @@ defineProps<{
 }>()
 
 const expandedProject = ref<string | null>(null)
+const { prefetchMediaOnIdle } = useImagePreloader()
 
 const toggleProject = (id: string) => {
   expandedProject.value = expandedProject.value === id ? null : id
 }
+
+// Prefetch all project gallery images when projects are loaded
+watch(
+  () => props.projects,
+  (projects) => {
+    if (projects.length > 0) {
+      // Collect all gallery images from all projects
+      const allGalleryImages: Media[] = []
+      for (const project of projects) {
+        if (project.images?.length) {
+          for (const img of project.images) {
+            if (img.image) {
+              allGalleryImages.push(img.image)
+            }
+          }
+        }
+      }
+      // Prefetch at 'lg' size (used in gallery main view)
+      if (allGalleryImages.length > 0) {
+        prefetchMediaOnIdle(allGalleryImages, 'lg')
+      }
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -44,15 +76,24 @@ const toggleProject = (id: string) => {
           <button class="project-header" @click="toggleProject(project.id)">
             <!-- Show thumbnail only when collapsed -->
             <template v-if="expandedProject !== project.id">
-              <img
-                v-if="project.images?.[0]?.image"
-                :src="getImageUrl(project.images[0].image, 'md')"
-                :srcset="getImageSrcset(project.images[0].image)"
-                :sizes="imageSizesPresets.card"
-                :alt="project.title"
-                class="project-thumbnail"
-                loading="lazy"
-              />
+              <picture v-if="project.images?.[0]?.image">
+                <source
+                  :srcset="getImageSrcsetAvif(project.images[0].image)"
+                  :sizes="imageSizesPresets.card"
+                  type="image/avif"
+                />
+                <source
+                  :srcset="getImageSrcset(project.images[0].image)"
+                  :sizes="imageSizesPresets.card"
+                  type="image/webp"
+                />
+                <img
+                  :src="getImageUrl(project.images[0].image, 'md')"
+                  :alt="project.title"
+                  class="project-thumbnail"
+                  loading="lazy"
+                />
+              </picture>
               <div v-else class="project-thumbnail placeholder"></div>
             </template>
             <div class="project-info">
