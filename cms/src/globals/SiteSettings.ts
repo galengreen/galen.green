@@ -16,6 +16,30 @@ export const SiteSettings: GlobalConfig = {
       type: 'tabs',
       tabs: [
         {
+          label: 'Loading Screen',
+          fields: [
+            {
+              name: 'loadingMessages',
+              type: 'array',
+              label: 'Loading Screen Messages',
+              admin: {
+                description:
+                  'Funny messages shown randomly during page load. Self-deprecating dev humour encouraged!',
+              },
+              fields: [
+                {
+                  name: 'message',
+                  type: 'text',
+                  required: true,
+                  admin: {
+                    placeholder: 'e.g., "Consulting Stack Overflow..."',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
           label: 'General',
           fields: [
             {

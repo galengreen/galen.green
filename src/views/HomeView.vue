@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
 import AboutSection from '@/components/sections/AboutSection.vue'
 import BlogSection from '@/components/sections/BlogSection.vue'
@@ -8,8 +8,13 @@ import HeroSection from '@/components/sections/HeroSection.vue'
 import PhotosSection from '@/components/sections/PhotosSection.vue'
 import ProjectsSection from '@/components/sections/ProjectsSection.vue'
 import { useScrollAnimations } from '@/composables/useScrollAnimation'
+import { useImagePreloader } from '@/composables/useImagePreloader'
+import { getImageUrl } from '@/composables/useMedia'
 import { api } from '@/services/payload'
 import type { About, BlogPost, GitHubStats, Photo, Project, SiteSettings } from '@/types'
+
+// Image preloader for idle prefetch
+const { prefetchOnIdle, criticalImagesLoaded } = useImagePreloader()
 
 // Scroll animations
 const { observe, isVisible } = useScrollAnimations({ threshold: 0.1 })
@@ -118,6 +123,42 @@ onMounted(async () => {
   }
 
   fetchAll()
+})
+
+// Prefetch remaining images during idle time once critical images are loaded
+watch(criticalImagesLoaded, (loaded) => {
+  if (loaded) {
+    // Collect all non-critical image URLs to prefetch
+    const urlsToPrefetch: string[] = []
+
+    // Project thumbnail images
+    projects.value.forEach((project) => {
+      if (project.images?.[0]?.image) {
+        urlsToPrefetch.push(getImageUrl(project.images[0].image, 'md'))
+      }
+    })
+
+    // Photo images (medium size for grid view)
+    photos.value.forEach((photo) => {
+      if (photo.image) {
+        urlsToPrefetch.push(getImageUrl(photo.image, 'md'))
+        // Also prefetch large for expanded view
+        urlsToPrefetch.push(getImageUrl(photo.image, 'lg'))
+      }
+    })
+
+    // Blog post cover images
+    blogPosts.value.forEach((post) => {
+      if (post.coverImage) {
+        urlsToPrefetch.push(getImageUrl(post.coverImage, 'md'))
+      }
+    })
+
+    // Prefetch all collected URLs during idle time
+    if (urlsToPrefetch.length > 0) {
+      prefetchOnIdle(urlsToPrefetch)
+    }
+  }
 })
 </script>
 

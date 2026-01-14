@@ -1,52 +1,29 @@
 import { ref, watch } from 'vue'
 
-export type Theme = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark'
 
-const theme = ref<Theme>('system')
+const theme = ref<Theme>('dark')
 const isDark = ref(false)
-
-// Store the media query and handler for cleanup
-let mediaQuery: MediaQueryList | null = null
-let mediaQueryHandler: ((e: MediaQueryListEvent) => void) | null = null
 
 export function useTheme() {
   const initTheme = () => {
     if (typeof window === 'undefined') return
 
+    // Check for saved preference, otherwise use system default
     const saved = localStorage.getItem('theme') as Theme | null
-    if (saved && ['light', 'dark', 'system'].includes(saved)) {
+    if (saved && ['light', 'dark'].includes(saved)) {
       theme.value = saved
+    } else {
+      // Default to system preference
+      theme.value = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
     }
 
     updateDarkMode()
-
-    // Listen for system preference changes
-    mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-    mediaQueryHandler = (e: MediaQueryListEvent) => {
-      if (theme.value === 'system') {
-        isDark.value = e.matches
-        applyTheme()
-      }
-    }
-    mediaQuery.addEventListener('change', mediaQueryHandler)
-  }
-
-  const cleanup = () => {
-    if (mediaQuery && mediaQueryHandler) {
-      mediaQuery.removeEventListener('change', mediaQueryHandler)
-      mediaQuery = null
-      mediaQueryHandler = null
-    }
   }
 
   const updateDarkMode = () => {
     if (typeof window === 'undefined') return
-
-    if (theme.value === 'system') {
-      isDark.value = window.matchMedia('(prefers-color-scheme: dark)').matches
-    } else {
-      isDark.value = theme.value === 'dark'
-    }
+    isDark.value = theme.value === 'dark'
     applyTheme()
   }
 
@@ -69,14 +46,8 @@ export function useTheme() {
   }
 
   const toggleTheme = () => {
-    // Cycle through: system -> light -> dark -> system
-    if (theme.value === 'system') {
-      setTheme('light')
-    } else if (theme.value === 'light') {
-      setTheme('dark')
-    } else {
-      setTheme('system')
-    }
+    // Toggle between light and dark
+    setTheme(theme.value === 'light' ? 'dark' : 'light')
   }
 
   watch(theme, updateDarkMode)
@@ -87,6 +58,5 @@ export function useTheme() {
     initTheme,
     setTheme,
     toggleTheme,
-    cleanup,
   }
 }

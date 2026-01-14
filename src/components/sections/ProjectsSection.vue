@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import ProjectGallery from '@/components/ui/ProjectGallery.vue'
 import RichText from '@/components/ui/RichText.vue'
-import { getImageUrl } from '@/composables/useMedia'
+import { getImageUrl, getImageSrcset, imageSizesPresets } from '@/composables/useMedia'
 import type { Project } from '@/types'
 
 defineProps<{
@@ -46,9 +46,12 @@ const toggleProject = (id: string) => {
             <template v-if="expandedProject !== project.id">
               <img
                 v-if="project.images?.[0]?.image"
-                :src="getImageUrl(project.images[0].image, 'medium')"
+                :src="getImageUrl(project.images[0].image, 'md')"
+                :srcset="getImageSrcset(project.images[0].image)"
+                :sizes="imageSizesPresets.card"
                 :alt="project.title"
                 class="project-thumbnail"
+                loading="lazy"
               />
               <div v-else class="project-thumbnail placeholder"></div>
             </template>

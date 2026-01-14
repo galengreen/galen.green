@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, onMounted, onUnmounted, ref } from 'vue'
-import { getImageUrl } from '@/composables/useMedia'
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
+import { getImageUrl, getImageSrcset, imageSizesPresets } from '@/composables/useMedia'
 import { useTheme } from '@/composables/useTheme'
+import { useImagePreloader } from '@/composables/useImagePreloader'
 import type { About, Media } from '@/types'
 
 const props = defineProps<{
@@ -14,33 +15,61 @@ const props = defineProps<{
 }>()
 
 const { isDark } = useTheme()
+const { preloadCritical } = useImagePreloader()
 
 const hasBackground = computed(() => props.backgroundImageLight || props.backgroundImageDark)
 
+// Image URLs for both themes (using xl size for hero)
 const lightImageUrl = computed(() =>
-  props.backgroundImageLight ? getImageUrl(props.backgroundImageLight, 'large') : null,
+  props.backgroundImageLight ? getImageUrl(props.backgroundImageLight, 'xl') : null,
 )
 const darkImageUrl = computed(() =>
-  props.backgroundImageDark ? getImageUrl(props.backgroundImageDark, 'large') : null,
+  props.backgroundImageDark ? getImageUrl(props.backgroundImageDark, 'xl') : null,
 )
 
-const backgroundImage = computed(() => {
-  const image = isDark.value ? props.backgroundImageDark : props.backgroundImageLight
-  const url = isDark.value ? darkImageUrl.value : lightImageUrl.value
-  if (!image || !url) return null
-  return {
-    url,
-    alt: image.alt || 'Hero background',
-  }
-})
+// Srcset for responsive hero backgrounds
+const lightImageSrcset = computed(() =>
+  props.backgroundImageLight ? getImageSrcset(props.backgroundImageLight) : '',
+)
+const darkImageSrcset = computed(() =>
+  props.backgroundImageDark ? getImageSrcset(props.backgroundImageDark) : '',
+)
 
-// Preload both images so theme switching is instant
-const preloadImage = (url: string | null) => {
-  if (url) {
-    const img = new Image()
-    img.src = url
+// Portrait image
+const portraitUrl = computed(() =>
+  props.about?.photo ? getImageUrl(props.about.photo, 'lg') : null,
+)
+const portraitSrcset = computed(() => (props.about?.photo ? getImageSrcset(props.about.photo) : ''))
+
+// Track which images are loaded for instant theme switching
+const lightLoaded = ref(false)
+const darkLoaded = ref(false)
+
+// Preload both theme images for instant switching
+const preloadBothThemes = async () => {
+  const urlsToPreload: string[] = []
+
+  if (lightImageUrl.value) urlsToPreload.push(lightImageUrl.value)
+  if (darkImageUrl.value) urlsToPreload.push(darkImageUrl.value)
+  if (portraitUrl.value) urlsToPreload.push(portraitUrl.value)
+
+  if (urlsToPreload.length > 0) {
+    await preloadCritical(urlsToPreload)
   }
+
+  // Mark individual images as loaded
+  if (lightImageUrl.value) lightLoaded.value = true
+  if (darkImageUrl.value) darkLoaded.value = true
 }
+
+// Watch for prop changes and preload when data arrives
+watch(
+  () => [props.backgroundImageLight, props.backgroundImageDark, props.about?.photo],
+  () => {
+    preloadBothThemes()
+  },
+  { immediate: true },
+)
 
 // Parallax effect - image scrolls faster than content
 const parallaxOffset = ref(0)
@@ -54,10 +83,6 @@ const handleScroll = () => {
 }
 
 onMounted(() => {
-  // Preload both theme images
-  preloadImage(lightImageUrl.value)
-  preloadImage(darkImageUrl.value)
-
   // Set up parallax scroll listener
   scrollContainer = document.getElementById('scroll-root')
   if (scrollContainer) {
@@ -82,20 +107,46 @@ const parallaxStyle = computed(() => ({
     class="hero-section fade-in"
     :class="{ visible, 'has-background': hasBackground }"
   >
+    <!-- Preload both theme backgrounds for instant switching -->
+    <!-- Light theme background (hidden when dark) -->
     <img
-      v-if="backgroundImage"
-      :src="backgroundImage.url"
-      :alt="backgroundImage.alt"
-      class="hero-background"
+      v-if="lightImageUrl"
+      :src="lightImageUrl"
+      :srcset="lightImageSrcset"
+      :sizes="imageSizesPresets.hero"
+      alt=""
+      aria-hidden="true"
+      class="hero-background hero-background-light"
+      :class="{ active: !isDark }"
       :style="parallaxStyle"
+      fetchpriority="high"
+      @load="lightLoaded = true"
     />
+    <!-- Dark theme background (hidden when light) -->
+    <img
+      v-if="darkImageUrl"
+      :src="darkImageUrl"
+      :srcset="darkImageSrcset"
+      :sizes="imageSizesPresets.hero"
+      alt=""
+      aria-hidden="true"
+      class="hero-background hero-background-dark"
+      :class="{ active: isDark }"
+      :style="parallaxStyle"
+      fetchpriority="high"
+      @load="darkLoaded = true"
+    />
+
     <div class="hero-content container">
       <div class="hero-image">
         <img
           v-if="about?.photo"
-          :src="getImageUrl(about.photo, 'large')"
+          :src="portraitUrl || ''"
+          :srcset="portraitSrcset"
+          :sizes="imageSizesPresets.avatar"
           :alt="about.photo.alt || 'Profile photo'"
           class="hero-photo"
+          fetchpriority="high"
         />
         <div v-else class="hero-image-placeholder"></div>
       </div>
@@ -139,6 +190,13 @@ const parallaxStyle = computed(() => ({
   z-index: 0;
   pointer-events: none;
   will-change: transform;
+  /* Both backgrounds are rendered but only one is visible */
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.hero-background.active {
+  opacity: 1;
 }
 
 .hero-section.has-background .hero-content {

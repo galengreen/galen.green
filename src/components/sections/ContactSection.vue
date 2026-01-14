@@ -158,4 +158,8 @@ const submitContact = async () => {
     gap: var(--space-4);
   }
 }
+
+.contact-form .btn-primary {
+  align-self: center;
+}
 </style>

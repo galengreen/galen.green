@@ -10,11 +10,30 @@ export interface Media {
   width: number
   height: number
   sizes: {
+    // New responsive sizes
+    xs?: MediaSize
+    sm?: MediaSize
+    md?: MediaSize
+    lg?: MediaSize
+    xl?: MediaSize
+    xxl?: MediaSize
+    // Legacy sizes (for backwards compatibility)
     thumbnail?: MediaSize
     medium?: MediaSize
     large?: MediaSize
   }
 }
+
+export type ImageSizeName =
+  | 'xs'
+  | 'sm'
+  | 'md'
+  | 'lg'
+  | 'xl'
+  | 'xxl'
+  | 'thumbnail'
+  | 'medium'
+  | 'large'
 
 export interface MediaSize {
   url: string
@@ -72,6 +91,10 @@ export interface SocialLink {
   url: string
 }
 
+export interface LoadingMessage {
+  message: string
+}
+
 export interface SiteSettings {
   name: {
     first: string
@@ -90,6 +113,7 @@ export interface SiteSettings {
     photos: string
     contact: string
   }
+  loadingMessages?: LoadingMessage[]
 }
 
 export interface GitHubStats {

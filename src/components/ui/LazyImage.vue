@@ -1,18 +1,28 @@
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted, computed } from 'vue'
 
-const props = defineProps<{
-  src: string
-  thumbnailSrc?: string
-  alt: string
-  aspectRatio?: number
-  class?: string
-}>()
+const props = withDefaults(
+  defineProps<{
+    src: string
+    srcset?: string
+    sizes?: string
+    thumbnailSrc?: string
+    alt: string
+    aspectRatio?: number
+    class?: string
+    eager?: boolean // Load immediately without waiting for viewport
+    fetchpriority?: 'high' | 'low' | 'auto' // Hint for browser loading priority
+  }>(),
+  {
+    eager: false,
+    fetchpriority: 'auto',
+  },
+)
 
 const imageRef = ref<HTMLImageElement | null>(null)
 const containerRef = ref<HTMLDivElement | null>(null)
 const isLoaded = ref(false)
-const isInView = ref(false)
+const isInView = ref(props.eager) // If eager, consider immediately in view
 const hasError = ref(false)
 
 let observer: IntersectionObserver | null = null
@@ -35,6 +45,12 @@ const handleError = () => {
 }
 
 onMounted(() => {
+  // If eager loading, skip IntersectionObserver
+  if (props.eager) {
+    isInView.value = true
+    return
+  }
+
   if (typeof window === 'undefined' || !('IntersectionObserver' in window)) {
     // Fallback: load immediately if no IntersectionObserver
     isInView.value = true
@@ -54,7 +70,7 @@ onMounted(() => {
       })
     },
     {
-      rootMargin: '50px 0px', // Start loading 50px before entering viewport
+      rootMargin: '200px 0px', // Increased from 50px - start loading earlier
       threshold: 0.01,
     },
   )
@@ -98,7 +114,10 @@ onUnmounted(() => {
       v-if="isInView && !hasError"
       ref="imageRef"
       :src="src"
+      :srcset="srcset"
+      :sizes="sizes"
       :alt="alt"
+      :fetchpriority="fetchpriority"
       class="image-main"
       :class="{ visible: isLoaded }"
       @load="handleLoad"

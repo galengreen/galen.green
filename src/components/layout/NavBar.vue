@@ -2,7 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useTheme } from '@/composables/useTheme'
 
-const { theme, toggleTheme, initTheme, cleanup: cleanupTheme } = useTheme()
+const { theme, toggleTheme, initTheme } = useTheme()
 
 const sections = [
   { id: 'hero', label: 'About' },
@@ -52,14 +52,11 @@ onUnmounted(() => {
   if (scrollRoot) {
     scrollRoot.removeEventListener('scroll', handleScroll)
   }
-  cleanupTheme()
 })
 
 // Theme icon based on current theme
 const themeIcon = computed(() => {
-  if (theme.value === 'system') return 'circle-half-stroke'
-  if (theme.value === 'dark') return 'moon'
-  return 'sun'
+  return theme.value === 'dark' ? 'moon' : 'sun'
 })
 </script>
 

@@ -2,7 +2,7 @@
 import { computed, ref } from 'vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
 import MasonryGrid from '@/components/ui/MasonryGrid.vue'
-import { formatDate, getImageUrl } from '@/composables/useMedia'
+import { formatDate, getImageUrl, getImageSrcset, imageSizesPresets } from '@/composables/useMedia'
 import type { Photo } from '@/types'
 
 const props = defineProps<{
@@ -48,18 +48,23 @@ const photosWithDimensions = computed(() => {
         <template #item="{ photo, aspectRatio }">
           <div class="photo-item" :class="{ expanded: expandedPhoto === photo.id }">
             <LazyImage
-              :src="getImageUrl(photo.image, 'medium')"
-              :thumbnail-src="getImageUrl(photo.image, 'thumbnail')"
+              :src="getImageUrl(photo.image, 'md')"
+              :srcset="getImageSrcset(photo.image)"
+              :sizes="imageSizesPresets.photoGrid"
+              :thumbnail-src="getImageUrl(photo.image, 'xs')"
               :alt="photo.title"
               :aspect-ratio="aspectRatio"
               class="photo-image"
             />
             <div v-if="expandedPhoto === photo.id" class="photo-expanded">
               <LazyImage
-                :src="getImageUrl(photo.image, 'large')"
-                :thumbnail-src="getImageUrl(photo.image, 'medium')"
+                :src="getImageUrl(photo.image, 'xl')"
+                :srcset="getImageSrcset(photo.image)"
+                sizes="100vw"
+                :thumbnail-src="getImageUrl(photo.image, 'md')"
                 :alt="photo.title"
                 class="photo-full"
+                eager
               />
               <div class="photo-info">
                 <h4>{{ photo.title }}</h4>

@@ -31,7 +31,53 @@ export const Media: CollectionConfig = {
     staticDir: process.env.MEDIA_DIR || '../media',
     mimeTypes: ['image/*'],
     filesRequiredOnCreate: false,
+    // Generate WebP format for better compression while preserving transparency
+    formatOptions: {
+      format: 'webp',
+      options: {
+        quality: 85,
+        lossless: false,
+      },
+    },
+    // Responsive image sizes for optimal loading at different screen sizes
     imageSizes: [
+      {
+        name: 'xs',
+        width: 320,
+        height: undefined,
+        position: 'centre',
+      },
+      {
+        name: 'sm',
+        width: 480,
+        height: undefined,
+        position: 'centre',
+      },
+      {
+        name: 'md',
+        width: 768,
+        height: undefined,
+        position: 'centre',
+      },
+      {
+        name: 'lg',
+        width: 1024,
+        height: undefined,
+        position: 'centre',
+      },
+      {
+        name: 'xl',
+        width: 1400,
+        height: undefined,
+        position: 'centre',
+      },
+      {
+        name: 'xxl',
+        width: 1920,
+        height: undefined,
+        position: 'centre',
+      },
+      // Keep legacy sizes for backwards compatibility
       {
         name: 'thumbnail',
         width: 400,

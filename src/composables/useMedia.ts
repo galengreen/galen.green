@@ -6,6 +6,25 @@
  * - In production: nginx proxies to CMS container
  */
 
+import type { ImageSizeName, Media } from '@/types'
+
+// Image size widths for srcset generation
+const IMAGE_SIZE_WIDTHS: Record<ImageSizeName, number> = {
+  xs: 320,
+  sm: 480,
+  md: 768,
+  lg: 1024,
+  xl: 1400,
+  xxl: 1920,
+  // Legacy sizes
+  thumbnail: 400,
+  medium: 800,
+  large: 1400,
+}
+
+// Ordered responsive sizes for srcset (smallest to largest)
+const RESPONSIVE_SIZES: ImageSizeName[] = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl']
+
 /**
  * Convert absolute URL to relative path for proxying
  */
@@ -26,7 +45,7 @@ function toRelativeUrl(url: string): string {
  */
 export function getImageUrl(
   media: { url?: string; sizes?: Record<string, { url?: string }> } | undefined,
-  size?: 'thumbnail' | 'medium' | 'large',
+  size?: ImageSizeName,
 ): string {
   if (!media) return ''
 
@@ -35,6 +54,83 @@ export function getImageUrl(
   }
 
   return toRelativeUrl(media.url || '')
+}
+
+/**
+ * Generate srcset string for responsive images
+ * @param media - Media object with sizes
+ * @param sizes - Array of size names to include (defaults to all responsive sizes)
+ * @returns srcset string like "url-sm.webp 480w, url-md.webp 768w, ..."
+ */
+export function getImageSrcset(
+  media: Media | undefined,
+  sizes: ImageSizeName[] = RESPONSIVE_SIZES,
+): string {
+  if (!media?.sizes) return ''
+
+  const srcsetParts: string[] = []
+
+  for (const size of sizes) {
+    const sizeData = media.sizes[size]
+    if (sizeData?.url) {
+      const url = toRelativeUrl(sizeData.url)
+      const width = sizeData.width || IMAGE_SIZE_WIDTHS[size]
+      srcsetParts.push(`${url} ${width}w`)
+    }
+  }
+
+  // Add original as fallback for larger screens if no xxl
+  if (!sizes.includes('xxl') && media.url) {
+    srcsetParts.push(`${toRelativeUrl(media.url)} ${media.width}w`)
+  }
+
+  return srcsetParts.join(', ')
+}
+
+/**
+ * Generate common sizes attribute patterns for responsive images
+ */
+export const imageSizesPresets = {
+  // Full width on mobile, constrained on larger screens
+  fullWidth: '100vw',
+  // Card/thumbnail: full width mobile, half on tablet, fixed on desktop
+  card: '(max-width: 480px) 100vw, (max-width: 768px) 50vw, 400px',
+  // Hero image: always full viewport width
+  hero: '100vw',
+  // Gallery thumbnail
+  galleryThumb: '(max-width: 480px) 50vw, (max-width: 768px) 33vw, 200px',
+  // Photo grid: responsive columns
+  photoGrid: '(max-width: 480px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 400px',
+  // Profile/avatar
+  avatar: '(max-width: 768px) 280px, 400px',
+} as const
+
+export type ImageSizesPreset = keyof typeof imageSizesPresets
+
+/**
+ * Get all available image URLs from a media object (all sizes + original)
+ * Useful for preloading
+ */
+export function getAllImageUrls(media: Media | undefined): string[] {
+  if (!media) return []
+
+  const urls: string[] = []
+
+  // Add all size URLs
+  if (media.sizes) {
+    for (const size of Object.values(media.sizes)) {
+      if (size?.url) {
+        urls.push(toRelativeUrl(size.url))
+      }
+    }
+  }
+
+  // Add original URL
+  if (media.url) {
+    urls.push(toRelativeUrl(media.url))
+  }
+
+  return urls
 }
 
 /**
@@ -54,6 +150,9 @@ export function formatDate(dateString: string): string {
 export function useMedia() {
   return {
     getImageUrl,
+    getImageSrcset,
+    getAllImageUrls,
+    imageSizesPresets,
     formatDate,
   }
 }
