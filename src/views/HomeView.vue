@@ -165,6 +165,8 @@ watch(criticalImagesLoaded, (loaded) => {
         :last-name="siteName.last"
         :background-image-light="siteSettings?.heroBackground?.light"
         :background-image-dark="siteSettings?.heroBackground?.dark"
+        :foreground-image-light="siteSettings?.heroForeground?.light"
+        :foreground-image-dark="siteSettings?.heroForeground?.dark"
         :visible="isVisible('hero')"
       />
     </div>

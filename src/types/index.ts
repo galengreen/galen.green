@@ -125,6 +125,10 @@ export interface SiteSettings {
     light?: Media
     dark?: Media
   }
+  heroForeground?: {
+    light?: Media
+    dark?: Media
+  }
   socials: SocialLink[]
   sectionTitles: {
     about: string

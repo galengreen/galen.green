@@ -8,7 +8,7 @@ import {
 } from '@/composables/useMedia'
 import { useTheme } from '@/composables/useTheme'
 import { useImagePreloader } from '@/composables/useImagePreloader'
-import type { About, Media } from '@/types'
+import type { About, Media, ImageSizeName } from '@/types'
 
 const props = defineProps<{
   about: About | null
@@ -16,50 +16,32 @@ const props = defineProps<{
   lastName: string
   backgroundImageLight?: Media
   backgroundImageDark?: Media
+  foregroundImageLight?: Media
+  foregroundImageDark?: Media
   visible: boolean
 }>()
 
 const { isDark } = useTheme()
 const { preloadCritical } = useImagePreloader()
 
+// Helper to generate image data for a Media object
+function getImageData(media: Media | undefined, size: ImageSizeName = 'xl') {
+  if (!media) return null
+  return {
+    url: getImageUrl(media, size),
+    srcset: getImageSrcset(media),
+    srcsetAvif: getImageSrcsetAvif(media),
+  }
+}
+
 const hasBackground = computed(() => props.backgroundImageLight || props.backgroundImageDark)
 
-// Image URLs for both themes (using xl size for hero)
-const lightImageUrl = computed(() =>
-  props.backgroundImageLight ? getImageUrl(props.backgroundImageLight, 'xl') : null,
-)
-const darkImageUrl = computed(() =>
-  props.backgroundImageDark ? getImageUrl(props.backgroundImageDark, 'xl') : null,
-)
-
-// Srcset for responsive hero backgrounds (WebP)
-const lightImageSrcset = computed(() =>
-  props.backgroundImageLight ? getImageSrcset(props.backgroundImageLight) : '',
-)
-const darkImageSrcset = computed(() =>
-  props.backgroundImageDark ? getImageSrcset(props.backgroundImageDark) : '',
-)
-
-// Srcset for responsive hero backgrounds (AVIF)
-const lightImageSrcsetAvif = computed(() =>
-  props.backgroundImageLight ? getImageSrcsetAvif(props.backgroundImageLight) : '',
-)
-const darkImageSrcsetAvif = computed(() =>
-  props.backgroundImageDark ? getImageSrcsetAvif(props.backgroundImageDark) : '',
-)
-
-// Portrait image
-const portraitUrl = computed(() =>
-  props.about?.photo ? getImageUrl(props.about.photo, 'lg') : null,
-)
-const portraitSrcset = computed(() => (props.about?.photo ? getImageSrcset(props.about.photo) : ''))
-const portraitSrcsetAvif = computed(() =>
-  props.about?.photo ? getImageSrcsetAvif(props.about.photo) : '',
-)
-
-// Track which images are loaded for instant theme switching
-const lightLoaded = ref(false)
-const darkLoaded = ref(false)
+// Computed image data for all layers
+const backgroundLight = computed(() => getImageData(props.backgroundImageLight))
+const backgroundDark = computed(() => getImageData(props.backgroundImageDark))
+const foregroundLight = computed(() => getImageData(props.foregroundImageLight))
+const foregroundDark = computed(() => getImageData(props.foregroundImageDark))
+const portrait = computed(() => getImageData(props.about?.photo, 'lg'))
 
 // Preload portrait image when about data arrives
 // (hero backgrounds are preloaded in App.vue)
@@ -76,19 +58,19 @@ watch(
   { immediate: true },
 )
 
-// Parallax effect - image scrolls faster than content
+// Parallax effect - each layer scrolls at a different speed
 const parallaxOffset = ref(0)
-const PARALLAX_SPEED = 0.3 // Extra scroll speed (image moves 1.4x faster)
+const BACKGROUND_PARALLAX_SPEED = 0.3 // Background moves slower
+const FOREGROUND_PARALLAX_SPEED = 0.5 // Foreground moves faster
 let scrollContainer: HTMLElement | null = null
 
 const handleScroll = () => {
   if (scrollContainer) {
-    parallaxOffset.value = scrollContainer.scrollTop * PARALLAX_SPEED
+    parallaxOffset.value = scrollContainer.scrollTop
   }
 }
 
 onMounted(() => {
-  // Set up parallax scroll listener
   scrollContainer = document.getElementById('scroll-root')
   if (scrollContainer) {
     scrollContainer.addEventListener('scroll', handleScroll, { passive: true })
@@ -101,8 +83,12 @@ onUnmounted(() => {
   }
 })
 
-const parallaxStyle = computed(() => ({
-  transform: `translateY(${parallaxOffset.value}px)`,
+const backgroundParallaxStyle = computed(() => ({
+  transform: `translateY(${parallaxOffset.value * BACKGROUND_PARALLAX_SPEED}px)`,
+}))
+
+const foregroundParallaxStyle = computed(() => ({
+  transform: `translateY(${parallaxOffset.value * FOREGROUND_PARALLAX_SPEED}px)`,
 }))
 </script>
 
@@ -112,55 +98,88 @@ const parallaxStyle = computed(() => ({
     class="hero-section fade-in"
     :class="{ visible, 'has-background': hasBackground }"
   >
-    <!-- Preload both theme backgrounds for instant switching -->
-    <!-- Light theme background (hidden when dark) -->
+    <!-- Background layer (slowest parallax) -->
     <picture
-      v-if="lightImageUrl"
-      class="hero-background hero-background-light"
+      v-if="backgroundLight"
+      class="hero-layer hero-layer--background"
       :class="{ active: !isDark }"
     >
-      <source :srcset="lightImageSrcsetAvif" :sizes="imageSizesPresets.hero" type="image/avif" />
-      <source :srcset="lightImageSrcset" :sizes="imageSizesPresets.hero" type="image/webp" />
+      <source
+        :srcset="backgroundLight.srcsetAvif"
+        :sizes="imageSizesPresets.hero"
+        type="image/avif"
+      />
+      <source :srcset="backgroundLight.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
       <img
-        :src="lightImageUrl"
+        :src="backgroundLight.url"
         alt=""
         aria-hidden="true"
-        :style="parallaxStyle"
+        :style="backgroundParallaxStyle"
         fetchpriority="high"
-        @load="lightLoaded = true"
       />
     </picture>
 
-    <!-- Dark theme background (hidden when light) -->
     <picture
-      v-if="darkImageUrl"
-      class="hero-background hero-background-dark"
+      v-if="backgroundDark"
+      class="hero-layer hero-layer--background"
       :class="{ active: isDark }"
     >
-      <source :srcset="darkImageSrcsetAvif" :sizes="imageSizesPresets.hero" type="image/avif" />
-      <source :srcset="darkImageSrcset" :sizes="imageSizesPresets.hero" type="image/webp" />
+      <source
+        :srcset="backgroundDark.srcsetAvif"
+        :sizes="imageSizesPresets.hero"
+        type="image/avif"
+      />
+      <source :srcset="backgroundDark.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
       <img
-        :src="darkImageUrl"
+        :src="backgroundDark.url"
         alt=""
         aria-hidden="true"
-        :style="parallaxStyle"
+        :style="backgroundParallaxStyle"
         fetchpriority="high"
-        @load="darkLoaded = true"
       />
+    </picture>
+
+    <!-- Foreground layer (faster parallax) -->
+    <picture
+      v-if="foregroundLight"
+      class="hero-layer hero-layer--foreground"
+      :class="{ active: !isDark }"
+    >
+      <source
+        :srcset="foregroundLight.srcsetAvif"
+        :sizes="imageSizesPresets.hero"
+        type="image/avif"
+      />
+      <source :srcset="foregroundLight.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
+      <img :src="foregroundLight.url" alt="" aria-hidden="true" :style="foregroundParallaxStyle" />
+    </picture>
+
+    <picture
+      v-if="foregroundDark"
+      class="hero-layer hero-layer--foreground"
+      :class="{ active: isDark }"
+    >
+      <source
+        :srcset="foregroundDark.srcsetAvif"
+        :sizes="imageSizesPresets.hero"
+        type="image/avif"
+      />
+      <source :srcset="foregroundDark.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
+      <img :src="foregroundDark.url" alt="" aria-hidden="true" :style="foregroundParallaxStyle" />
     </picture>
 
     <div class="hero-content container">
       <div class="hero-image">
-        <picture v-if="about?.photo">
+        <picture v-if="portrait">
           <source
-            :srcset="portraitSrcsetAvif"
+            :srcset="portrait.srcsetAvif"
             :sizes="imageSizesPresets.avatar"
             type="image/avif"
           />
-          <source :srcset="portraitSrcset" :sizes="imageSizesPresets.avatar" type="image/webp" />
+          <source :srcset="portrait.srcset" :sizes="imageSizesPresets.avatar" type="image/webp" />
           <img
-            :src="portraitUrl || ''"
-            :alt="about.photo.alt || 'Profile photo'"
+            :src="portrait.url || ''"
+            :alt="about?.photo?.alt || 'Profile photo'"
             class="hero-photo"
             fetchpriority="high"
           />
@@ -196,20 +215,19 @@ const parallaxStyle = computed(() => ({
   overflow: visible;
 }
 
-.hero-background {
+/* Shared styles for parallax layers */
+.hero-layer {
   position: absolute;
   top: 0;
   left: 0;
   width: 100%;
   min-height: 100%;
-  z-index: 0;
   pointer-events: none;
-  /* Both backgrounds are rendered but only one is visible */
   opacity: 0;
   transition: opacity 0.3s ease;
 }
 
-.hero-background img {
+.hero-layer img {
   width: 100%;
   min-height: 100%;
   object-fit: cover;
@@ -217,13 +235,21 @@ const parallaxStyle = computed(() => ({
   will-change: transform;
 }
 
-.hero-background.active {
+.hero-layer.active {
   opacity: 1;
+}
+
+.hero-layer--background {
+  z-index: 0;
+}
+
+.hero-layer--foreground {
+  z-index: 1;
 }
 
 .hero-section.has-background .hero-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
 }
 
 .hero-content {

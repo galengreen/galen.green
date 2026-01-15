@@ -98,6 +98,33 @@ export const SiteSettings: GlobalConfig = {
                 },
               ],
             },
+            {
+              name: 'heroForeground',
+              type: 'group',
+              label: 'Hero Foreground',
+              admin: {
+                description:
+                  'Foreground layer images with separate parallax speed (appears above background)',
+              },
+              fields: [
+                {
+                  name: 'light',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description: 'Foreground image for light mode',
+                  },
+                },
+                {
+                  name: 'dark',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description: 'Foreground image for dark mode',
+                  },
+                },
+              ],
+            },
           ],
         },
         {
