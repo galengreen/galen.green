@@ -2,8 +2,8 @@
 import { computed, ref } from 'vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
 import MasonryGrid from '@/components/ui/MasonryGrid.vue'
+import PhotoLightbox from '@/components/ui/PhotoLightbox.vue'
 import {
-  formatDate,
   getImageUrl,
   getImageSrcset,
   getImageSrcsetAvif,
@@ -18,10 +18,15 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const expandedPhoto = ref<string | null>(null)
+const showLightbox = ref(false)
+const lightboxIndex = ref(0)
 
-const togglePhoto = (id: string) => {
-  expandedPhoto.value = expandedPhoto.value === id ? null : id
+const openPhoto = (id: string) => {
+  const index = props.photos.findIndex((p) => p.id === id)
+  if (index !== -1) {
+    lightboxIndex.value = index
+    showLightbox.value = true
+  }
 }
 
 const photosWithDimensions = computed(() => {
@@ -49,10 +54,10 @@ const photosWithDimensions = computed(() => {
         :photos="photosWithDimensions"
         :column-count="3"
         :gap="16"
-        @photo-click="togglePhoto"
+        @photo-click="openPhoto"
       >
         <template #item="{ photo, aspectRatio }">
-          <div class="photo-item" :class="{ expanded: expandedPhoto === photo.id }">
+          <div class="photo-item">
             <LazyImage
               :src="getImageUrl(photo.image, 'md')"
               :srcset="getImageSrcset(photo.image)"
@@ -63,23 +68,6 @@ const photosWithDimensions = computed(() => {
               :aspect-ratio="aspectRatio"
               class="photo-image"
             />
-            <div v-if="expandedPhoto === photo.id" class="photo-expanded">
-              <LazyImage
-                :src="getImageUrl(photo.image, 'xl')"
-                :srcset="getImageSrcset(photo.image)"
-                :srcset-avif="getImageSrcsetAvif(photo.image)"
-                sizes="100vw"
-                :thumbnail-src="getImageUrl(photo.image, 'md')"
-                :alt="photo.title"
-                class="photo-full"
-                eager
-              />
-              <div class="photo-info">
-                <h4>{{ photo.title }}</h4>
-                <p v-if="photo.description" class="text-muted">{{ photo.description }}</p>
-                <time class="text-subtle">{{ formatDate(photo.date) }}</time>
-              </div>
-            </div>
           </div>
         </template>
       </MasonryGrid>
@@ -87,6 +75,14 @@ const photosWithDimensions = computed(() => {
       <div v-else class="empty-state">
         <p class="text-muted">Photos coming soon...</p>
       </div>
+
+      <!-- Fullscreen lightbox -->
+      <PhotoLightbox
+        :photos="photos"
+        :initial-index="lightboxIndex"
+        :open="showLightbox"
+        @close="showLightbox = false"
+      />
     </div>
   </section>
 </template>
@@ -102,6 +98,12 @@ const photosWithDimensions = computed(() => {
   overflow: hidden;
   border-radius: var(--space-2);
   box-shadow: var(--shadow-md);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.photo-item:hover {
+  transform: scale(1.02);
 }
 
 .photo-image {
@@ -117,26 +119,6 @@ const photosWithDimensions = computed(() => {
   border-radius: var(--space-2);
 }
 
-.photo-expanded {
-  margin-top: var(--space-4);
-  padding: var(--space-4);
-  background-color: var(--color-surface);
-  border-radius: var(--space-2);
-  box-shadow: var(--shadow-md);
-}
-
-.photo-full {
-  width: 100%;
-  border-radius: var(--space-2);
-}
-
-.photo-info {
-  margin-top: var(--space-4);
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
 .empty-state {
   padding: var(--space-12);
   text-align: center;
@@ -149,15 +131,15 @@ const photosWithDimensions = computed(() => {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-3);
   }
+
+  .photo-item:hover {
+    transform: none;
+  }
 }
 
 @media (max-width: 480px) {
   .photos-grid-loading {
     grid-template-columns: 1fr;
-  }
-
-  .photo-info h4 {
-    font-size: var(--text-base);
   }
 }
 </style>
