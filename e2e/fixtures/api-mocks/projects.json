@@ -1,0 +1,131 @@
+{
+  "docs": [
+    {
+      "id": "project-1",
+      "title": "Portfolio Website",
+      "slug": "portfolio-website",
+      "excerpt": "A modern, performant portfolio site built with Vue 3, TypeScript, and Payload CMS.",
+      "description": {
+        "root": {
+          "type": "root",
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "This portfolio showcases my work as a software engineer and photographer. Built with performance and accessibility in mind."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "images": [
+        {
+          "image": {
+            "id": "project-img-1",
+            "alt": "Portfolio homepage screenshot",
+            "url": "/media/project-1-1.webp",
+            "filename": "project-1-1.webp",
+            "mimeType": "image/webp",
+            "width": 1920,
+            "height": 1080,
+            "sizes": {
+              "md": { "url": "/media/project-1-1-md.webp", "width": 800, "height": 450 }
+            }
+          },
+          "caption": "Homepage hero section"
+        }
+      ],
+      "techStack": [
+        { "tech": "Vue 3" },
+        { "tech": "TypeScript" },
+        { "tech": "Payload CMS" },
+        { "tech": "PrimeVue" }
+      ],
+      "liveUrl": "https://galen.green",
+      "githubUrl": "https://github.com/galengreen/galen.green",
+      "date": "2025-01-01T00:00:00.000Z",
+      "featured": true
+    },
+    {
+      "id": "project-2",
+      "title": "Weather Dashboard",
+      "slug": "weather-dashboard",
+      "excerpt": "Real-time weather monitoring application with data visualisation and location-based forecasts.",
+      "description": {
+        "root": {
+          "type": "root",
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "A comprehensive weather dashboard that displays current conditions, forecasts, and historical data with interactive charts."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "images": [
+        {
+          "image": {
+            "id": "project-img-2",
+            "alt": "Weather dashboard screenshot",
+            "url": "/media/project-2-1.webp",
+            "filename": "project-2-1.webp",
+            "mimeType": "image/webp",
+            "width": 1920,
+            "height": 1080,
+            "sizes": {}
+          },
+          "caption": "Main dashboard view"
+        }
+      ],
+      "techStack": [{ "tech": "React" }, { "tech": "D3.js" }, { "tech": "Node.js" }],
+      "liveUrl": "https://weather.example.com",
+      "githubUrl": "https://github.com/galengreen/weather-dashboard",
+      "date": "2024-11-15T00:00:00.000Z",
+      "featured": true
+    },
+    {
+      "id": "project-3",
+      "title": "Task Manager CLI",
+      "slug": "task-manager-cli",
+      "excerpt": "A command-line task management tool with natural language parsing and calendar integration.",
+      "description": {
+        "root": {
+          "type": "root",
+          "children": [
+            {
+              "type": "paragraph",
+              "children": [
+                {
+                  "type": "text",
+                  "text": "Manage your tasks from the terminal with intuitive commands and smart date parsing."
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "images": [],
+      "techStack": [{ "tech": "Rust" }, { "tech": "SQLite" }],
+      "githubUrl": "https://github.com/galengreen/task-cli",
+      "date": "2024-09-01T00:00:00.000Z",
+      "featured": false
+    }
+  ],
+  "totalDocs": 3,
+  "limit": 20,
+  "totalPages": 1,
+  "page": 1,
+  "pagingCounter": 1,
+  "hasPrevPage": false,
+  "hasNextPage": false,
+  "prevPage": null,
+  "nextPage": null
+}

@@ -1,0 +1,90 @@
+{
+  "docs": [
+    {
+      "id": "photo-1",
+      "title": "Mountain Sunrise",
+      "description": "Early morning light breaking over the Southern Alps",
+      "image": {
+        "id": "photo-img-1",
+        "alt": "Mountain sunrise landscape",
+        "url": "/media/photo-1.webp",
+        "filename": "photo-1.webp",
+        "mimeType": "image/webp",
+        "width": 2400,
+        "height": 1600,
+        "sizes": {
+          "sm": { "url": "/media/photo-1-sm.webp", "width": 400, "height": 267 },
+          "md": { "url": "/media/photo-1-md.webp", "width": 800, "height": 533 },
+          "lg": { "url": "/media/photo-1-lg.webp", "width": 1200, "height": 800 }
+        }
+      },
+      "date": "2025-01-05T00:00:00.000Z",
+      "featured": true
+    },
+    {
+      "id": "photo-2",
+      "title": "Urban Reflections",
+      "description": "City lights reflected in rain-soaked streets",
+      "image": {
+        "id": "photo-img-2",
+        "alt": "City street at night with reflections",
+        "url": "/media/photo-2.webp",
+        "filename": "photo-2.webp",
+        "mimeType": "image/webp",
+        "width": 1600,
+        "height": 2400,
+        "sizes": {
+          "sm": { "url": "/media/photo-2-sm.webp", "width": 267, "height": 400 },
+          "md": { "url": "/media/photo-2-md.webp", "width": 533, "height": 800 }
+        }
+      },
+      "date": "2024-12-28T00:00:00.000Z",
+      "featured": true
+    },
+    {
+      "id": "photo-3",
+      "title": "Coastal Serenity",
+      "description": "Long exposure of waves on the west coast",
+      "image": {
+        "id": "photo-img-3",
+        "alt": "Long exposure seascape",
+        "url": "/media/photo-3.webp",
+        "filename": "photo-3.webp",
+        "mimeType": "image/webp",
+        "width": 2400,
+        "height": 1600,
+        "sizes": {
+          "md": { "url": "/media/photo-3-md.webp", "width": 800, "height": 533 }
+        }
+      },
+      "date": "2024-12-15T00:00:00.000Z",
+      "featured": false
+    },
+    {
+      "id": "photo-4",
+      "title": "Forest Path",
+      "description": "Sunlight filtering through native bush",
+      "image": {
+        "id": "photo-img-4",
+        "alt": "Forest path with dappled light",
+        "url": "/media/photo-4.webp",
+        "filename": "photo-4.webp",
+        "mimeType": "image/webp",
+        "width": 1600,
+        "height": 2400,
+        "sizes": {}
+      },
+      "date": "2024-11-20T00:00:00.000Z",
+      "featured": false
+    }
+  ],
+  "totalDocs": 4,
+  "limit": 50,
+  "totalPages": 1,
+  "page": 1,
+  "pagingCounter": 1,
+  "hasPrevPage": false,
+  "hasNextPage": false,
+  "prevPage": null,
+  "nextPage": null
+}

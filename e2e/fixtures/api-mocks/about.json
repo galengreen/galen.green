@@ -1,0 +1,40 @@
+{
+  "content": {
+    "root": {
+      "type": "root",
+      "children": [
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "text": "Hello! I'm a software engineer based in New Zealand with a passion for building great user experiences."
+            }
+          ]
+        },
+        {
+          "type": "paragraph",
+          "children": [
+            {
+              "type": "text",
+              "text": "When I'm not coding, you'll find me exploring the outdoors with my camera, capturing landscapes and street photography."
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "photo": {
+    "id": "profile-photo-1",
+    "alt": "Profile photo",
+    "url": "/media/profile.webp",
+    "filename": "profile.webp",
+    "mimeType": "image/webp",
+    "width": 800,
+    "height": 800,
+    "sizes": {
+      "md": { "url": "/media/profile-md.webp", "width": 400, "height": 400 }
+    }
+  },
+  "subtitle": "Software Engineer & Photographer"
+}

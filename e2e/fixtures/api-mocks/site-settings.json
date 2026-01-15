@@ -1,0 +1,46 @@
+{
+  "name": {
+    "first": "Galen",
+    "last": "Green"
+  },
+  "email": "test@example.com",
+  "heroBackground": {
+    "light": {
+      "id": "hero-light-1",
+      "alt": "Hero background light",
+      "url": "/media/hero-light.webp",
+      "filename": "hero-light.webp",
+      "mimeType": "image/webp",
+      "width": 1200,
+      "height": 1200,
+      "sizes": {}
+    },
+    "dark": {
+      "id": "hero-dark-1",
+      "alt": "Hero background dark",
+      "url": "/media/hero-dark.webp",
+      "filename": "hero-dark.webp",
+      "mimeType": "image/webp",
+      "width": 1200,
+      "height": 1200,
+      "sizes": {}
+    }
+  },
+  "socials": [
+    { "platform": "github", "url": "https://github.com/galengreen" },
+    { "platform": "linkedin", "url": "https://linkedin.com/in/galengreen" },
+    { "platform": "email", "url": "mailto:test@example.com" }
+  ],
+  "sectionTitles": {
+    "about": "About",
+    "projects": "Projects",
+    "blog": "Blog",
+    "photos": "Photos",
+    "contact": "Contact"
+  },
+  "loadingMessages": [
+    { "message": "Consulting Stack Overflow..." },
+    { "message": "Reticulating splines..." },
+    { "message": "Compiling excuses..." }
+  ]
+}
