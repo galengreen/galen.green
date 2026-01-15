@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue'
+import { ref, onMounted, watch, inject, type Ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { api } from '@/services/payload'
-import type { BlogPost } from '@/types'
+import type { BlogPost, SiteSettings } from '@/types'
 import RichText from '@/components/ui/RichText.vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
 
 const route = useRoute()
 const router = useRouter()
+
+// Get site settings from App.vue (already fetched)
+const siteSettings = inject<Ref<SiteSettings | null>>('siteSettings', ref(null))
 
 const post = ref<BlogPost | null>(null)
 const loading = ref(true)
@@ -118,14 +121,23 @@ watch(
       </template>
     </div>
 
-    <FooterSection v-if="!loading" />
+    <FooterSection v-if="!loading" :name="siteSettings?.name" :socials="siteSettings?.socials" />
   </article>
 </template>
 
 <style scoped>
 .blog-post {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
   padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-12));
-  padding-bottom: var(--space-16);
+}
+
+.container {
+  flex: 1;
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 0 var(--space-6);
 }
 
 .back-link {
