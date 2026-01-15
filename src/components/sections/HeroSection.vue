@@ -46,13 +46,10 @@ const portrait = computed(() => getImageData(props.about?.photo, 'lg'))
 // Preload portrait image when about data arrives
 // (hero backgrounds are preloaded in App.vue)
 watch(
-  () => props.about?.photo,
-  (photo) => {
-    if (photo) {
-      const url = getImageUrl(photo, 'lg')
-      if (url) {
-        preloadCritical([url])
-      }
+  portrait,
+  (data) => {
+    if (data?.url) {
+      preloadCritical([data.url])
     }
   },
   { immediate: true },
@@ -60,8 +57,8 @@ watch(
 
 // Parallax effect - each layer scrolls at a different speed
 const parallaxOffset = ref(0)
-const BACKGROUND_PARALLAX_SPEED = 0.5 // Background moves slower
-const FOREGROUND_PARALLAX_SPEED = 0.3 // Foreground moves faster
+const BACKGROUND_PARALLAX_SPEED = 0.5 // Background moves more (further from viewer)
+const FOREGROUND_PARALLAX_SPEED = 0.3 // Foreground moves less (closer to viewer)
 let scrollContainer: HTMLElement | null = null
 let rafId: number | null = null
 let ticking = false
