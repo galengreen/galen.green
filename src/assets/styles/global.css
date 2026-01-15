@@ -4,9 +4,19 @@
 */
 
 /* Base */
+html,
+body {
+  overscroll-behavior: none;
+  overflow: hidden;
+  height: 100%;
+}
+
 body {
   background-color: var(--color-frame);
   color: var(--color-text);
+  position: fixed;
+  width: 100%;
+  touch-action: none;
 }
 
 /* Selection */
@@ -173,6 +183,7 @@ body {
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  overscroll-behavior: none;
 }
 
 /* Visually hidden (accessible) */

@@ -37,6 +37,9 @@
   overflow-y: auto;
   overflow-x: hidden;
   scroll-behavior: smooth;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-y;
 }
 
 /* Custom scrollbar */

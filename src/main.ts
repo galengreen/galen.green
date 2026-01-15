@@ -119,6 +119,19 @@ export const createApp = ViteSSG(
       if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
         document.documentElement.classList.add('dark')
       }
+
+      // Prevent iOS Safari overscroll bounce on document
+      document.body.addEventListener(
+        'touchmove',
+        (e) => {
+          // Only prevent if not scrolling inside a scrollable element
+          const scrollRoot = document.getElementById('scroll-root')
+          if (scrollRoot && !scrollRoot.contains(e.target as Node)) {
+            e.preventDefault()
+          }
+        },
+        { passive: false },
+      )
     }
   },
 )

@@ -60,13 +60,23 @@ watch(
 
 // Parallax effect - each layer scrolls at a different speed
 const parallaxOffset = ref(0)
-const BACKGROUND_PARALLAX_SPEED = 0.3 // Background moves slower
-const FOREGROUND_PARALLAX_SPEED = 0.5 // Foreground moves faster
+const BACKGROUND_PARALLAX_SPEED = 0.5 // Background moves slower
+const FOREGROUND_PARALLAX_SPEED = 0.3 // Foreground moves faster
 let scrollContainer: HTMLElement | null = null
+let rafId: number | null = null
+let ticking = false
 
-const handleScroll = () => {
+const updateParallax = () => {
   if (scrollContainer) {
     parallaxOffset.value = scrollContainer.scrollTop
+  }
+  ticking = false
+}
+
+const handleScroll = () => {
+  if (!ticking) {
+    rafId = requestAnimationFrame(updateParallax)
+    ticking = true
   }
 }
 
@@ -80,6 +90,9 @@ onMounted(() => {
 onUnmounted(() => {
   if (scrollContainer) {
     scrollContainer.removeEventListener('scroll', handleScroll)
+  }
+  if (rafId !== null) {
+    cancelAnimationFrame(rafId)
   }
 })
 
@@ -224,7 +237,6 @@ const foregroundParallaxStyle = computed(() => ({
   min-height: 100%;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.3s ease;
 }
 
 .hero-layer img {
