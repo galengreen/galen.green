@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import type { Media } from '@/types'
+import { getImageUrl, getImageSrcset, getImageSrcsetAvif } from '@/composables/useMedia'
 
 // Payload Lexical rich text structure
 interface LexicalNode {
@@ -11,10 +13,7 @@ interface LexicalNode {
   listType?: string
   url?: string
   newTab?: boolean
-  value?: {
-    url?: string
-    alt?: string
-  }
+  value?: Media
 }
 
 interface LexicalRoot {
@@ -27,16 +26,26 @@ const props = defineProps<{
   content: LexicalRoot | unknown
 }>()
 
-// Convert URL to relative path for proxying
-const getMediaUrl = (url: string) => {
-  if (!url) return ''
-  // Strip domain to make it relative for proxying
-  try {
-    const parsed = new URL(url, 'http://localhost')
-    return parsed.pathname
-  } catch {
-    return url
+// Build responsive picture element HTML string
+const buildPictureElement = (media: Media, alt: string): string => {
+  const src = getImageUrl(media, 'lg')
+  const srcsetAvif = getImageSrcsetAvif(media)
+  const srcsetWebp = getImageSrcset(media)
+  const sizes = '(max-width: 720px) 100vw, 720px' // matches container width
+
+  let pictureHtml = '<picture>'
+
+  if (srcsetAvif) {
+    pictureHtml += `<source srcset="${srcsetAvif}" sizes="${sizes}" type="image/avif" />`
   }
+  if (srcsetWebp) {
+    pictureHtml += `<source srcset="${srcsetWebp}" sizes="${sizes}" type="image/webp" />`
+  }
+
+  pictureHtml += `<img src="${src}" alt="${alt}" loading="lazy" />`
+  pictureHtml += '</picture>'
+
+  return pictureHtml
 }
 
 // Convert Lexical format bitmask to classes
@@ -91,9 +100,10 @@ const renderNode = (node: LexicalNode): string => {
       return `<blockquote>${children}</blockquote>`
     case 'upload': {
       if (node.value?.url) {
-        const url = getMediaUrl(node.value.url)
-        const alt = node.value.alt || ''
-        return `<figure><img src="${url}" alt="${alt}" loading="lazy" />${alt ? `<figcaption>${alt}</figcaption>` : ''}</figure>`
+        const media = node.value
+        const alt = media.alt || ''
+        const pictureHtml = buildPictureElement(media, alt)
+        return `<figure>${pictureHtml}${alt ? `<figcaption>${alt}</figcaption>` : ''}</figure>`
       }
       return ''
     }

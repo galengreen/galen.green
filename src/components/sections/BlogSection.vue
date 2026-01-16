@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { formatDate } from '@/composables/useMedia'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import SkeletonText from '@/components/ui/SkeletonText.vue'
 import type { BlogPost } from '@/types'
 
 defineProps<{
@@ -24,9 +26,7 @@ const goToBlogPost = (slug: string) => {
 
       <div v-if="loading" class="blog-list">
         <div v-for="i in 3" :key="i" class="blog-item">
-          <div class="skeleton skeleton-text short"></div>
-          <div class="skeleton skeleton-text"></div>
-          <div class="skeleton skeleton-text"></div>
+          <SkeletonText :lines="3" short-last />
         </div>
       </div>
 
@@ -43,9 +43,7 @@ const goToBlogPost = (slug: string) => {
         </article>
       </div>
 
-      <div v-else class="empty-state">
-        <p class="text-muted">Blog posts coming soon...</p>
-      </div>
+      <EmptyState v-else message="Blog posts coming soon..." />
     </div>
   </section>
 </template>
@@ -85,11 +83,6 @@ const goToBlogPost = (slug: string) => {
 
 .blog-excerpt {
   line-height: var(--leading-relaxed);
-}
-
-.empty-state {
-  padding: var(--space-12);
-  text-align: center;
 }
 
 /* skeleton classes are defined globally in transitions.css */

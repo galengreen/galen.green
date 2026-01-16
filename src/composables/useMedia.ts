@@ -188,15 +188,30 @@ export function getAllImageUrls(media: Media | undefined): string[] {
   return urls
 }
 
+export interface FormatDateOptions {
+  /** Include short weekday (e.g., "Thu, 16 Jan 2026") */
+  includeWeekday?: boolean
+  /** Use long month name (e.g., "January" instead of "Jan") */
+  longMonth?: boolean
+}
+
 /**
  * Format a date string for display
+ * @param dateString - ISO date string to format
+ * @param options - Formatting options
  */
-export function formatDate(dateString: string): string {
-  return new Date(dateString).toLocaleDateString('en-NZ', {
+export function formatDate(dateString: string, options?: FormatDateOptions): string {
+  const formatOptions: Intl.DateTimeFormatOptions = {
     day: 'numeric',
-    month: 'short',
+    month: options?.longMonth ? 'long' : 'short',
     year: 'numeric',
-  })
+  }
+
+  if (options?.includeWeekday) {
+    formatOptions.weekday = 'short'
+  }
+
+  return new Date(dateString).toLocaleDateString('en-NZ', formatOptions)
 }
 
 /**

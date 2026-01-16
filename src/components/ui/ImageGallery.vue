@@ -1,5 +1,8 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
+import LazyImage from './LazyImage.vue'
+import { IconChevronLeft, IconChevronRight } from '@/components/icons'
+import { useGalleryNavigation } from '@/composables/useGalleryNavigation'
 
 export interface GalleryImage {
   src: string
@@ -10,39 +13,31 @@ export interface GalleryImage {
   thumbnailSrcsetAvif?: string
   alt: string
   caption?: string
+  width?: number
+  height?: number
 }
 
 const props = defineProps<{
   images: GalleryImage[]
 }>()
 
-const activeIndex = ref(0)
+const itemCount = computed(() => props.images.length)
+
+const {
+  currentIndex: activeIndex,
+  goToPrevious,
+  goToNext,
+  goToIndex,
+  handleKeydown,
+} = useGalleryNavigation({
+  itemCount,
+  loop: true,
+})
 
 // activeImage is guaranteed to exist when images.length > 0 (guarded in template)
 const activeImage = computed(() => props.images[activeIndex.value] as GalleryImage)
 const showNavigation = computed(() => props.images.length > 1)
 const showThumbnails = computed(() => props.images.length > 1)
-
-function goToPrevious() {
-  activeIndex.value = activeIndex.value > 0 ? activeIndex.value - 1 : props.images.length - 1
-}
-
-function goToNext() {
-  activeIndex.value = activeIndex.value < props.images.length - 1 ? activeIndex.value + 1 : 0
-}
-
-function selectImage(index: number) {
-  activeIndex.value = index
-}
-
-// Keyboard navigation
-function handleKeydown(event: KeyboardEvent) {
-  if (event.key === 'ArrowLeft') {
-    goToPrevious()
-  } else if (event.key === 'ArrowRight') {
-    goToNext()
-  }
-}
 </script>
 
 <template>
@@ -56,36 +51,26 @@ function handleKeydown(event: KeyboardEvent) {
         aria-label="Previous image"
         @click="goToPrevious"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            stroke-width="2"
-            d="M15 19l-7-7 7-7"
-          />
-        </svg>
+        <IconChevronLeft />
       </button>
 
       <!-- Main image -->
       <div class="gallery-image-wrapper">
-        <picture v-if="activeImage.srcsetAvif">
-          <source :srcset="activeImage.srcsetAvif" sizes="100vw" type="image/avif" />
-          <source :srcset="activeImage.srcset" sizes="100vw" type="image/webp" />
-          <img
-            :key="activeIndex"
-            :src="activeImage.src"
-            :alt="activeImage.alt"
-            class="gallery-image"
-          />
-        </picture>
-        <img
-          v-else
+        <LazyImage
           :key="activeIndex"
           :src="activeImage.src"
           :srcset="activeImage.srcset"
+          :srcset-avif="activeImage.srcsetAvif"
           sizes="100vw"
+          :thumbnail-src="activeImage.thumbnailSrc"
           :alt="activeImage.alt"
+          :aspect-ratio="
+            activeImage.width && activeImage.height
+              ? activeImage.height / activeImage.width
+              : undefined
+          "
           class="gallery-image"
+          eager
         />
       </div>
 
@@ -96,9 +81,7 @@ function handleKeydown(event: KeyboardEvent) {
         aria-label="Next image"
         @click="goToNext"
       >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-        </svg>
+        <IconChevronRight />
       </button>
     </div>
 
@@ -116,14 +99,17 @@ function handleKeydown(event: KeyboardEvent) {
         :class="{ active: index === activeIndex }"
         :aria-label="`View image ${index + 1}`"
         :aria-current="index === activeIndex ? 'true' : undefined"
-        @click="selectImage(index)"
+        @click="goToIndex(index)"
       >
-        <picture v-if="thumb.thumbnailSrcsetAvif">
-          <source :srcset="thumb.thumbnailSrcsetAvif" type="image/avif" />
-          <source :srcset="thumb.thumbnailSrcset" type="image/webp" />
-          <img :src="thumb.thumbnailSrc" :alt="thumb.alt" class="thumbnail-image" />
-        </picture>
-        <img v-else :src="thumb.thumbnailSrc" :alt="thumb.alt" class="thumbnail-image" />
+        <LazyImage
+          :src="thumb.thumbnailSrc"
+          :srcset="thumb.thumbnailSrcset"
+          :srcset-avif="thumb.thumbnailSrcsetAvif"
+          :alt="thumb.alt"
+          :aspect-ratio="thumb.width && thumb.height ? thumb.height / thumb.width : 3 / 4"
+          class="thumbnail-image"
+          eager
+        />
       </button>
     </div>
   </div>
@@ -150,9 +136,9 @@ function handleKeydown(event: KeyboardEvent) {
 }
 
 .gallery-image {
+  width: 100%;
   max-width: 100%;
-  object-fit: contain;
-  background: var(--color-surface);
+  border-radius: var(--radius-sm);
 }
 
 /* Navigation buttons */
@@ -234,9 +220,8 @@ function handleKeydown(event: KeyboardEvent) {
 .thumbnail-image {
   display: block;
   width: 80px;
-  height: 60px;
-  object-fit: cover;
   border-radius: calc(var(--radius-sm) - 2px);
+  overflow: hidden;
 }
 
 /* Responsive */
@@ -253,14 +238,12 @@ function handleKeydown(event: KeyboardEvent) {
 
   .thumbnail-image {
     width: 60px;
-    height: 45px;
   }
 }
 
 @media (max-width: 480px) {
   .thumbnail-image {
     width: 50px;
-    height: 38px;
   }
 }
 </style>

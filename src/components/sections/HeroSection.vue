@@ -228,10 +228,10 @@ const foregroundParallaxStyle = computed(() => ({
 /* Shared styles for parallax layers */
 .hero-layer {
   position: absolute;
-  top: 0;
+  top: -300px;
   left: 0;
   width: 100%;
-  min-height: 100%;
+  height: calc(100% + 300px);
   pointer-events: none;
   opacity: 0;
 }
@@ -324,6 +324,11 @@ const foregroundParallaxStyle = computed(() => ({
     padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-8));
   }
 
+  .hero-layer {
+    top: 0;
+    height: 100%;
+  }
+
   .hero-content {
     grid-template-columns: 1fr;
     text-align: center;
@@ -346,16 +351,6 @@ const foregroundParallaxStyle = computed(() => ({
 }
 
 @media (max-width: 480px) {
-  .hero-section {
-    min-height: 60vh;
-  }
-
-  .hero-section.has-background {
-    min-height: 100vh;
-    margin-top: calc(-1 * (var(--navbar-height) + var(--navbar-top) + var(--space-4)));
-    padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-8));
-  }
-
   .hero-name {
     font-size: var(--text-4xl);
   }

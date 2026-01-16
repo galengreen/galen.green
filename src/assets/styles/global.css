@@ -163,6 +163,7 @@ body {
 
 .section-title {
   font-size: var(--text-3xl);
+  font-weight: 700;
   margin-bottom: var(--space-8);
 }
 

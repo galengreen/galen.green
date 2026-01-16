@@ -20,6 +20,8 @@ const galleryImages = computed<GalleryImage[]>(() => {
     thumbnailSrcsetAvif: getImageSrcsetAvif(img.image, ['xs', 'sm']),
     alt: img.caption || `${props.projectTitle} screenshot ${index + 1}`,
     caption: img.caption,
+    width: img.image.width,
+    height: img.image.height,
   }))
 })
 </script>

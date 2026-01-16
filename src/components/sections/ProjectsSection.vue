@@ -2,6 +2,10 @@
 import { ref, watch } from 'vue'
 import ProjectGallery from '@/components/ui/ProjectGallery.vue'
 import RichText from '@/components/ui/RichText.vue'
+import LazyImage from '@/components/ui/LazyImage.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import SkeletonText from '@/components/ui/SkeletonText.vue'
+import SkeletonBox from '@/components/ui/SkeletonBox.vue'
 import {
   getImageUrl,
   getImageSrcset,
@@ -58,10 +62,9 @@ watch(
 
       <div v-if="loading" class="projects-grid">
         <div v-for="i in 4" :key="i" class="project-card card">
-          <div class="skeleton project-thumbnail"></div>
+          <SkeletonBox :aspect-ratio="9 / 16" />
           <div class="project-info">
-            <div class="skeleton skeleton-text short"></div>
-            <div class="skeleton skeleton-text"></div>
+            <SkeletonText :lines="2" short-last />
           </div>
         </div>
       </div>
@@ -76,24 +79,17 @@ watch(
           <button class="project-header" @click="toggleProject(project.id)">
             <!-- Show thumbnail only when collapsed -->
             <template v-if="expandedProject !== project.id">
-              <picture v-if="project.images?.[0]?.image">
-                <source
-                  :srcset="getImageSrcsetAvif(project.images[0].image)"
-                  :sizes="imageSizesPresets.card"
-                  type="image/avif"
-                />
-                <source
-                  :srcset="getImageSrcset(project.images[0].image)"
-                  :sizes="imageSizesPresets.card"
-                  type="image/webp"
-                />
-                <img
-                  :src="getImageUrl(project.images[0].image, 'md')"
-                  :alt="project.title"
-                  class="project-thumbnail"
-                  loading="lazy"
-                />
-              </picture>
+              <LazyImage
+                v-if="project.images?.[0]?.image"
+                :src="getImageUrl(project.images[0].image, 'md')"
+                :srcset="getImageSrcset(project.images[0].image)"
+                :srcset-avif="getImageSrcsetAvif(project.images[0].image)"
+                :sizes="imageSizesPresets.card"
+                :thumbnail-src="getImageUrl(project.images[0].image, 'xs')"
+                :alt="project.title"
+                :aspect-ratio="project.images[0].image.height / project.images[0].image.width"
+                class="project-thumbnail"
+              />
               <div v-else class="project-thumbnail placeholder"></div>
             </template>
             <div class="project-info">
@@ -145,9 +141,7 @@ watch(
         </div>
       </div>
 
-      <div v-else class="empty-state">
-        <p class="text-muted">Projects coming soon...</p>
-      </div>
+      <EmptyState v-else message="Projects coming soon..." />
     </div>
   </section>
 </template>
@@ -171,15 +165,21 @@ watch(
   width: 100%;
   text-align: left;
   cursor: pointer;
+  background: none;
+  border: none;
+  color: inherit;
+  font: inherit;
+  padding: 0;
 }
 
 .project-thumbnail {
   width: 100%;
-  object-fit: cover;
-  background-color: var(--color-border);
+  display: block;
+  border-radius: 0;
 }
 
 .project-thumbnail.placeholder {
+  aspect-ratio: 16/9;
   background-color: var(--color-surface);
 }
 
@@ -223,11 +223,6 @@ watch(
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-3);
-}
-
-.empty-state {
-  padding: var(--space-12);
-  text-align: center;
 }
 
 /* skeleton classes are defined globally in transitions.css */

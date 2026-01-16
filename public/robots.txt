@@ -1,0 +1,10 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://galen.green/sitemap.xml
+
+# Disallow admin/API paths
+Disallow: /api/
+Disallow: /admin/

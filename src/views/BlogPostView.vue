@@ -5,6 +5,16 @@ import { api } from '@/services/payload'
 import type { BlogPost, SiteSettings } from '@/types'
 import RichText from '@/components/ui/RichText.vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
+import LazyImage from '@/components/ui/LazyImage.vue'
+import SkeletonText from '@/components/ui/SkeletonText.vue'
+import SkeletonBox from '@/components/ui/SkeletonBox.vue'
+import {
+  formatDate,
+  getImageUrl,
+  getImageSrcset,
+  getImageSrcsetAvif,
+  imageSizesPresets,
+} from '@/composables/useMedia'
 
 const route = useRoute()
 const router = useRouter()
@@ -39,23 +49,8 @@ const fetchPost = async (slug: string) => {
   }
 }
 
-const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-NZ', {
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  })
-}
-
-const getImageUrl = (url: string) => {
-  if (!url) return ''
-  // Strip domain to make it relative for proxying
-  try {
-    const parsed = new URL(url, 'http://localhost')
-    return parsed.pathname
-  } catch {
-    return url
-  }
+const formatDateLong = (dateString: string) => {
+  return formatDate(dateString, { longMonth: true })
 }
 
 onMounted(() => {
@@ -86,11 +81,9 @@ watch(
 
       <!-- Loading state -->
       <div v-if="loading" class="loading">
-        <div class="skeleton skeleton-title"></div>
-        <div class="skeleton skeleton-date"></div>
-        <div class="skeleton skeleton-text"></div>
-        <div class="skeleton skeleton-text"></div>
-        <div class="skeleton skeleton-text short"></div>
+        <SkeletonBox height="2.5rem" rounded="sm" class="skeleton-title" />
+        <SkeletonBox height="1rem" rounded="sm" class="skeleton-date" />
+        <SkeletonText :lines="3" short-last />
       </div>
 
       <!-- Error state -->
@@ -103,15 +96,21 @@ watch(
       <!-- Post content -->
       <template v-else-if="post">
         <!-- Cover image -->
-        <img
-          v-if="post.coverImage?.url"
-          :src="getImageUrl(post.coverImage.url)"
+        <LazyImage
+          v-if="post.coverImage"
+          :src="getImageUrl(post.coverImage, 'lg')"
+          :srcset="getImageSrcset(post.coverImage)"
+          :srcset-avif="getImageSrcsetAvif(post.coverImage)"
+          :sizes="imageSizesPresets.hero"
+          :thumbnail-src="getImageUrl(post.coverImage, 'xs')"
           :alt="post.coverImage.alt || post.title"
+          :aspect-ratio="post.coverImage.height / post.coverImage.width"
           class="cover-image"
+          eager
         />
 
         <header class="post-header">
-          <time class="post-date text-subtle">{{ formatDate(post.date) }}</time>
+          <time class="post-date text-subtle">{{ formatDateLong(post.date) }}</time>
           <h1 class="post-title">{{ post.title }}</h1>
         </header>
 
@@ -155,10 +154,9 @@ watch(
 
 .cover-image {
   width: 100%;
-  max-height: 400px;
-  object-fit: cover;
   border-radius: var(--space-3);
   margin-bottom: var(--space-8);
+  overflow: hidden;
 }
 
 .post-header {
@@ -188,16 +186,14 @@ watch(
   gap: var(--space-4);
 }
 
-/* skeleton base class is defined globally in transitions.css */
-
 .skeleton-title {
-  height: 3rem;
   width: 80%;
+  margin-bottom: var(--space-2);
 }
 
 .skeleton-date {
-  height: 1rem;
   width: 30%;
+  margin-bottom: var(--space-4);
 }
 
 /* Error state */
@@ -225,7 +221,6 @@ watch(
   }
 
   .cover-image {
-    max-height: 250px;
     margin-bottom: var(--space-6);
   }
 
@@ -248,7 +243,6 @@ watch(
   }
 
   .cover-image {
-    max-height: 200px;
     border-radius: var(--space-2);
   }
 }

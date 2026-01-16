@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { ref, computed, onUnmounted, watch } from 'vue'
+import { ref, computed, toRef, onUnmounted, watch } from 'vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
+import { IconChevronLeft, IconChevronRight, IconClose, IconInfo } from '@/components/icons'
 import { formatDate, getImageUrl, getImageSrcset, getImageSrcsetAvif } from '@/composables/useMedia'
+import { useGalleryNavigation } from '@/composables/useGalleryNavigation'
 import type { Photo } from '@/types'
 
 const props = withDefaults(
@@ -20,20 +22,7 @@ const emit = defineEmits<{
   close: []
 }>()
 
-const currentIndex = ref(props.initialIndex)
 const showInfo = ref(false)
-
-// currentPhoto is guaranteed to exist when photos.length > 0 (guarded in template)
-const currentPhoto = computed(() => props.photos[currentIndex.value] as Photo)
-const hasMultiple = computed(() => props.photos.length > 1)
-
-function goToPrevious() {
-  currentIndex.value = currentIndex.value > 0 ? currentIndex.value - 1 : props.photos.length - 1
-}
-
-function goToNext() {
-  currentIndex.value = currentIndex.value < props.photos.length - 1 ? currentIndex.value + 1 : 0
-}
 
 function toggleInfo() {
   showInfo.value = !showInfo.value
@@ -43,23 +32,25 @@ function close() {
   emit('close')
 }
 
-function handleKeydown(event: KeyboardEvent) {
-  switch (event.key) {
-    case 'Escape':
-      close()
-      break
-    case 'ArrowLeft':
-      goToPrevious()
-      break
-    case 'ArrowRight':
-      goToNext()
-      break
-    case 'i':
-    case 'I':
-      toggleInfo()
-      break
-  }
-}
+const itemCount = computed(() => props.photos.length)
+const isActive = toRef(props, 'open')
+
+const { currentIndex, goToPrevious, goToNext } = useGalleryNavigation({
+  itemCount,
+  initialIndex: props.initialIndex,
+  loop: true,
+  onClose: close,
+  customKeys: {
+    i: toggleInfo,
+    I: toggleInfo,
+  },
+  isActive,
+  useDocumentListener: true,
+})
+
+// currentPhoto is guaranteed to exist when photos.length > 0 (guarded in template)
+const currentPhoto = computed(() => props.photos[currentIndex.value] as Photo)
+const hasMultiple = computed(() => props.photos.length > 1)
 
 function handleBackdropClick(event: MouseEvent) {
   if (event.target === event.currentTarget) {
@@ -73,10 +64,8 @@ watch(
   (isOpen) => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
-      document.addEventListener('keydown', handleKeydown)
     } else {
       document.body.style.overflow = ''
-      document.removeEventListener('keydown', handleKeydown)
     }
   },
   { immediate: true },
@@ -84,10 +73,9 @@ watch(
 
 onUnmounted(() => {
   document.body.style.overflow = ''
-  document.removeEventListener('keydown', handleKeydown)
 })
 
-// Reset to initial index when photos change
+// Reset to initial index when initialIndex prop changes
 watch(
   () => props.initialIndex,
   (newIndex) => {
@@ -102,14 +90,7 @@ watch(
       <div v-if="open" class="lightbox-overlay" @click="handleBackdropClick">
         <!-- Close button -->
         <button class="lightbox-btn lightbox-close" aria-label="Close" @click="close">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <path
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              stroke-width="2"
-              d="M6 18L18 6M6 6l12 12"
-            />
-          </svg>
+          <IconClose />
         </button>
 
         <!-- Info toggle button -->
@@ -119,10 +100,7 @@ watch(
           aria-label="Toggle info"
           @click="toggleInfo"
         >
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-            <circle cx="12" cy="12" r="10" stroke-width="2" />
-            <path stroke-linecap="round" stroke-width="2" d="M12 16v-4M12 8h.01" />
-          </svg>
+          <IconInfo />
         </button>
 
         <!-- Main content area -->
@@ -136,14 +114,7 @@ watch(
               aria-label="Previous photo"
               @click="goToPrevious"
             >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M15 19l-7-7 7-7"
-                />
-              </svg>
+              <IconChevronLeft :size="32" />
             </button>
 
             <!-- Photo -->
@@ -169,14 +140,7 @@ watch(
               aria-label="Next photo"
               @click="goToNext"
             >
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M9 5l7 7-7 7"
-                />
-              </svg>
+              <IconChevronRight :size="32" />
             </button>
           </div>
 

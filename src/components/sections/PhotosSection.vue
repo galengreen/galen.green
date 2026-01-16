@@ -3,6 +3,8 @@ import { computed, ref } from 'vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
 import MasonryGrid from '@/components/ui/MasonryGrid.vue'
 import PhotoLightbox from '@/components/ui/PhotoLightbox.vue'
+import EmptyState from '@/components/ui/EmptyState.vue'
+import SkeletonBox from '@/components/ui/SkeletonBox.vue'
 import {
   getImageUrl,
   getImageSrcset,
@@ -45,7 +47,7 @@ const photosWithDimensions = computed(() => {
 
       <div v-if="loading" class="photos-grid-loading">
         <div v-for="i in 6" :key="i" class="photo-item">
-          <div class="skeleton photo-placeholder"></div>
+          <SkeletonBox :aspect-ratio="3 / 4" rounded="sm" />
         </div>
       </div>
 
@@ -72,9 +74,7 @@ const photosWithDimensions = computed(() => {
         </template>
       </MasonryGrid>
 
-      <div v-else class="empty-state">
-        <p class="text-muted">Photos coming soon...</p>
-      </div>
+      <EmptyState v-else message="Photos coming soon..." />
 
       <!-- Fullscreen lightbox -->
       <PhotoLightbox
@@ -110,18 +110,6 @@ const photosWithDimensions = computed(() => {
   width: 100%;
   display: block;
   border-radius: var(--space-2);
-}
-
-.photo-placeholder {
-  aspect-ratio: 4/3;
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--space-2);
-}
-
-.empty-state {
-  padding: var(--space-12);
-  text-align: center;
 }
 
 /* skeleton class is defined globally in transitions.css */

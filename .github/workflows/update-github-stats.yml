@@ -1,0 +1,36 @@
+name: Update GitHub Stats
+
+on:
+  # Run daily at 6am UTC (7pm NZST / 6pm NZDT)
+  schedule:
+    - cron: '0 6 * * *'
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+env:
+  API_URL: https://galen.green/api/github-stats
+
+jobs:
+  update-stats:
+    name: Refresh GitHub Stats
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger GitHub stats refresh
+        run: |
+          response=$(curl -s -w "\n%{http_code}" -X POST \
+            "${{ env.API_URL }}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            -H "Content-Type: application/json")
+
+          http_code=$(echo "$response" | tail -n1)
+          body=$(echo "$response" | sed '$d')
+
+          echo "Response status: $http_code"
+          echo "Response body: $body"
+
+          if [ "$http_code" -ne 200 ]; then
+            echo "::error::Failed to update GitHub stats (HTTP $http_code)"
+            exit 1
+          fi
+
+          echo "✅ GitHub stats updated successfully"
