@@ -1,4 +1,4 @@
-import { ref, onMounted, onUnmounted, watch, type Ref } from 'vue'
+import { ref, onUnmounted, watch, type Ref } from 'vue'
 
 export interface GalleryNavigationOptions {
   /** Total number of items in the gallery */

@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import Card from '@/components/ui/Card.vue'
 import type { ContributionWeek } from '@/types'
 
 const props = defineProps<{
   contributionGraph: ContributionWeek[]
   totalContributions: number
-  currentStreak: number
-  longestStreak: number
 }>()
 
 // Constants
@@ -18,11 +17,12 @@ const LEFT_LABEL_WIDTH = 32
 const TOP_LABEL_HEIGHT = 16
 const LEGEND_HEIGHT = 24
 
-// Tooltip state
+// Tooltip state (using pixel positions relative to the card wrapper)
 const tooltipVisible = ref(false)
 const tooltipContent = ref('')
 const tooltipX = ref(0)
 const tooltipY = ref(0)
+const cardWrapperRef = ref<HTMLElement | null>(null)
 
 // Month labels
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
@@ -114,16 +114,19 @@ const getContributionText = (count: number): string => {
   return `${count} contributions`
 }
 
-// Handle tooltip events
+// Handle tooltip events - position relative to the card wrapper
 const showTooltip = (event: MouseEvent, day: { date: string; count: number }) => {
   const rect = event.target as SVGRectElement
-  const svgRect = rect.closest('svg')?.getBoundingClientRect()
+  const wrapper = cardWrapperRef.value
 
-  if (svgRect) {
-    const rectBounds = rect.getBoundingClientRect()
-    tooltipX.value = rectBounds.left - svgRect.left + SQUARE_SIZE / 2
-    tooltipY.value = rectBounds.top - svgRect.top - 8
-  }
+  if (!wrapper) return
+
+  const wrapperRect = wrapper.getBoundingClientRect()
+  const rectBounds = rect.getBoundingClientRect()
+
+  // Position tooltip centred above the hovered square (in pixels relative to wrapper)
+  tooltipX.value = rectBounds.left - wrapperRect.left + rectBounds.width / 2
+  tooltipY.value = rectBounds.top - wrapperRect.top - 8
 
   tooltipContent.value = `${getContributionText(day.count)} on ${formatDateForTooltip(day.date)}`
   tooltipVisible.value = true
@@ -140,127 +143,103 @@ const legendY = computed(() => TOP_LABEL_HEIGHT + DAYS_IN_WEEK * (SQUARE_SIZE + 
 </script>
 
 <template>
-  <div class="github-graph">
-    <div class="graph-header">
-      <span class="graph-title">GitHub Activity</span>
-      <span class="graph-total">{{ totalContributions }} contributions in the last year</span>
-    </div>
+  <div ref="cardWrapperRef" class="github-graph-wrapper">
+    <Card padding="lg" :opacity="80" :blur="12" class="github-graph">
+      <template #header>
+        <div class="graph-header">
+          <span class="graph-title">GitHub Activity</span>
+          <span class="graph-total">{{ totalContributions }} contributions in the last year</span>
+        </div>
+      </template>
 
-    <div class="graph-container">
-      <svg :viewBox="viewBox" class="contribution-svg">
-        <!-- Month labels -->
-        <g class="month-labels">
-          <text
-            v-for="(label, index) in monthLabels"
-            :key="index"
-            :x="label.x"
-            :y="12"
-            class="month-label"
-          >
-            {{ label.month }}
-          </text>
-        </g>
+      <div class="graph-container">
+        <svg :viewBox="viewBox" class="contribution-svg">
+          <!-- Month labels -->
+          <g class="month-labels">
+            <text
+              v-for="(label, index) in monthLabels"
+              :key="index"
+              :x="label.x"
+              :y="12"
+              class="month-label"
+            >
+              {{ label.month }}
+            </text>
+          </g>
 
-        <!-- Day labels -->
-        <g class="day-labels">
-          <text v-for="label in dayLabels" :key="label.day" :x="0" :y="label.y" class="day-label">
-            {{ label.day }}
-          </text>
-        </g>
+          <!-- Day labels -->
+          <g class="day-labels">
+            <text v-for="label in dayLabels" :key="label.day" :x="0" :y="label.y" class="day-label">
+              {{ label.day }}
+            </text>
+          </g>
 
-        <!-- Contribution grid -->
-        <g class="contribution-grid">
-          <g
-            v-for="(week, weekIndex) in displayWeeks"
-            :key="weekIndex"
-            :transform="`translate(${LEFT_LABEL_WIDTH + weekIndex * (SQUARE_SIZE + SQUARE_GAP)}, ${TOP_LABEL_HEIGHT})`"
-          >
+          <!-- Contribution grid -->
+          <g class="contribution-grid">
+            <g
+              v-for="(week, weekIndex) in displayWeeks"
+              :key="weekIndex"
+              :transform="`translate(${LEFT_LABEL_WIDTH + weekIndex * (SQUARE_SIZE + SQUARE_GAP)}, ${TOP_LABEL_HEIGHT})`"
+            >
+              <rect
+                v-for="(day, dayIndex) in week.days"
+                :key="day.date"
+                :y="dayIndex * (SQUARE_SIZE + SQUARE_GAP)"
+                :width="SQUARE_SIZE"
+                :height="SQUARE_SIZE"
+                :rx="SQUARE_RADIUS"
+                :ry="SQUARE_RADIUS"
+                :data-level="day.level"
+                class="contribution-day"
+                @mouseenter="showTooltip($event, day)"
+                @mouseleave="hideTooltip"
+              />
+            </g>
+          </g>
+
+          <!-- Legend -->
+          <g class="legend" :transform="`translate(${legendX}, ${legendY})`">
+            <text x="0" y="10" class="legend-label">Less</text>
             <rect
-              v-for="(day, dayIndex) in week.days"
-              :key="day.date"
-              :y="dayIndex * (SQUARE_SIZE + SQUARE_GAP)"
+              v-for="(level, index) in legendLevels"
+              :key="level"
+              :x="30 + index * (SQUARE_SIZE + 2)"
+              :y="0"
               :width="SQUARE_SIZE"
               :height="SQUARE_SIZE"
               :rx="SQUARE_RADIUS"
               :ry="SQUARE_RADIUS"
-              :data-level="day.level"
+              :data-level="level"
               class="contribution-day"
-              @mouseenter="showTooltip($event, day)"
-              @mouseleave="hideTooltip"
             />
+            <text :x="30 + legendLevels.length * (SQUARE_SIZE + 2) + 4" y="10" class="legend-label">
+              More
+            </text>
           </g>
-        </g>
-
-        <!-- Legend -->
-        <g class="legend" :transform="`translate(${legendX}, ${legendY})`">
-          <text x="0" y="10" class="legend-label">Less</text>
-          <rect
-            v-for="(level, index) in legendLevels"
-            :key="level"
-            :x="30 + index * (SQUARE_SIZE + 2)"
-            :y="0"
-            :width="SQUARE_SIZE"
-            :height="SQUARE_SIZE"
-            :rx="SQUARE_RADIUS"
-            :ry="SQUARE_RADIUS"
-            :data-level="level"
-            class="contribution-day"
-          />
-          <text :x="30 + legendLevels.length * (SQUARE_SIZE + 2) + 4" y="10" class="legend-label">
-            More
-          </text>
-        </g>
-
-        <!-- Tooltip -->
-        <g
-          v-if="tooltipVisible"
-          class="tooltip-group"
-          :transform="`translate(${tooltipX}, ${tooltipY})`"
-        >
-          <rect
-            :x="-tooltipContent.length * 3"
-            y="-28"
-            :width="tooltipContent.length * 6"
-            height="22"
-            rx="4"
-            ry="4"
-            class="tooltip-bg"
-          />
-          <text y="-12" text-anchor="middle" class="tooltip-text">
-            {{ tooltipContent }}
-          </text>
-          <polygon points="-5,0 5,0 0,6" class="tooltip-arrow" />
-        </g>
-      </svg>
-    </div>
-
-    <div class="graph-stats">
-      <div class="stat">
-        <span class="stat-value">{{ currentStreak }}</span>
-        <span class="stat-label">Current Streak</span>
+        </svg>
       </div>
-      <div class="stat">
-        <span class="stat-value">{{ longestStreak }}</span>
-        <span class="stat-label">Longest Streak</span>
-      </div>
+    </Card>
+
+    <!-- HTML Tooltip (positioned relative to wrapper, outside overflow:hidden container) -->
+    <div
+      v-if="tooltipVisible"
+      class="tooltip"
+      :style="{ left: `${tooltipX}px`, top: `${tooltipY}px` }"
+    >
+      {{ tooltipContent }}
     </div>
   </div>
 </template>
 
 <style scoped>
-.github-graph {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  padding: var(--space-6);
-  box-shadow: var(--shadow-md);
+.github-graph-wrapper {
+  position: relative;
 }
 
 .graph-header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: var(--space-4);
   flex-wrap: wrap;
   gap: var(--space-2);
 }
@@ -270,22 +249,10 @@ const legendY = computed(() => TOP_LABEL_HEIGHT + DAYS_IN_WEEK * (SQUARE_SIZE + 
   color: var(--color-text);
 }
 
-.graph-total {
-  font-size: var(--text-sm);
-  color: var(--color-muted);
-}
-
 .graph-container {
   width: 100%;
-  overflow-x: auto;
+  overflow-x: hidden;
   padding-bottom: var(--space-2);
-}
-
-.contribution-svg {
-  display: block;
-  width: 100%;
-  height: auto;
-  min-width: 700px;
 }
 
 .month-label,
@@ -294,10 +261,6 @@ const legendY = computed(() => TOP_LABEL_HEIGHT + DAYS_IN_WEEK * (SQUARE_SIZE + 
   font-size: 10px;
   fill: var(--color-muted);
   font-family: var(--font-sans);
-}
-
-.day-label {
-  font-size: 9px;
 }
 
 /* Contribution day squares */
@@ -316,136 +279,56 @@ const legendY = computed(() => TOP_LABEL_HEIGHT + DAYS_IN_WEEK * (SQUARE_SIZE + 
   outline-offset: 1px;
 }
 
-/* GitHub colour scheme - light mode */
+/* GitHub colour scheme using CSS custom properties */
 .contribution-day[data-level='0'] {
-  fill: #ebedf0;
+  fill: var(--gh-level-0, #ebedf0);
 }
 
 .contribution-day[data-level='1'] {
-  fill: #9be9a8;
+  fill: var(--gh-level-1, #9be9a8);
 }
 
 .contribution-day[data-level='2'] {
-  fill: #40c463;
+  fill: var(--gh-level-2, #40c463);
 }
 
 .contribution-day[data-level='3'] {
-  fill: #30a14e;
+  fill: var(--gh-level-3, #30a14e);
 }
 
 .contribution-day[data-level='4'] {
-  fill: #216e39;
-}
-
-/* GitHub colour scheme - dark mode */
-:root[data-theme='dark'] .contribution-day[data-level='0'] {
-  fill: #161b22;
-}
-
-:root[data-theme='dark'] .contribution-day[data-level='1'] {
-  fill: #0e4429;
-}
-
-:root[data-theme='dark'] .contribution-day[data-level='2'] {
-  fill: #006d32;
-}
-
-:root[data-theme='dark'] .contribution-day[data-level='3'] {
-  fill: #26a641;
-}
-
-:root[data-theme='dark'] .contribution-day[data-level='4'] {
-  fill: #39d353;
+  fill: var(--gh-level-4, #216e39);
 }
 
 /* Tooltip styles */
-.tooltip-group {
-  pointer-events: none;
-}
-
-.tooltip-bg {
-  fill: rgba(36, 41, 47, 0.95);
-}
-
-.tooltip-text {
+.tooltip {
+  position: absolute;
+  transform: translate(-50%, -100%);
+  padding: var(--space-1) var(--space-2);
+  background: var(--gh-tooltip-bg);
+  color: var(--gh-tooltip-text);
   font-size: 11px;
-  fill: #ffffff;
   font-family: var(--font-sans);
-}
-
-.tooltip-arrow {
-  fill: rgba(36, 41, 47, 0.95);
-}
-
-:root[data-theme='dark'] .tooltip-bg {
-  fill: rgba(255, 255, 255, 0.95);
-}
-
-:root[data-theme='dark'] .tooltip-text {
-  fill: #24292f;
-}
-
-:root[data-theme='dark'] .tooltip-arrow {
-  fill: rgba(255, 255, 255, 0.95);
-}
-
-/* Stats section */
-.graph-stats {
-  display: flex;
-  gap: var(--space-8);
-  margin-top: var(--space-6);
-  padding-top: var(--space-4);
-  border-top: 1px solid var(--color-border);
-}
-
-.stat {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-1);
-}
-
-.stat-value {
-  font-size: var(--text-2xl);
-  font-weight: 700;
-  color: var(--color-text);
-  font-family: var(--font-mono);
-}
-
-.stat-label {
-  font-size: var(--text-sm);
-  color: var(--color-muted);
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
-  .github-graph {
-    padding: var(--space-4);
-  }
-
   .contribution-svg {
     min-width: 600px;
   }
 }
 
 @media (max-width: 480px) {
-  .github-graph {
-    padding: var(--space-3);
-  }
-
   .graph-header {
     flex-direction: column;
   }
 
   .contribution-svg {
     min-width: 500px;
-  }
-
-  .graph-stats {
-    gap: var(--space-4);
-  }
-
-  .stat-value {
-    font-size: var(--text-xl);
   }
 }
 </style>

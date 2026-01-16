@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import Card from '@/components/ui/Card.vue'
 import ProjectGallery from '@/components/ui/ProjectGallery.vue'
 import RichText from '@/components/ui/RichText.vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
@@ -61,19 +62,22 @@ watch(
       <h2 class="section-title">{{ title }}</h2>
 
       <div v-if="loading" class="projects-grid">
-        <div v-for="i in 4" :key="i" class="project-card card">
+        <Card v-for="i in 4" :key="i" padding="none" :opacity="80" :blur="12" class="project-card">
           <SkeletonBox :aspect-ratio="9 / 16" />
           <div class="project-info">
             <SkeletonText :lines="2" short-last />
           </div>
-        </div>
+        </Card>
       </div>
 
       <div v-else-if="projects.length" class="projects-grid">
-        <div
+        <Card
           v-for="project in projects"
           :key="project.id"
-          class="project-card card"
+          padding="none"
+          :opacity="80"
+          :blur="12"
+          class="project-card"
           :class="{ expanded: expandedProject === project.id }"
         >
           <button class="project-header" @click="toggleProject(project.id)">
@@ -138,7 +142,7 @@ watch(
               :project-title="project.title"
             />
           </div>
-        </div>
+        </Card>
       </div>
 
       <EmptyState v-else message="Projects coming soon..." />

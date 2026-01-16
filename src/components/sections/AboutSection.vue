@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Card from '@/components/ui/Card.vue'
 import GitHubGraph from '@/components/ui/GitHubGraph.vue'
 import RichText from '@/components/ui/RichText.vue'
 import SkeletonText from '@/components/ui/SkeletonText.vue'
@@ -20,14 +21,14 @@ defineProps<{
     <div class="container container-narrow">
       <h2 class="section-title">{{ title }}</h2>
 
-      <div class="about-card card">
+      <Card padding="lg" :opacity="80" :blur="12" class="about-card">
         <div v-if="loadingAbout">
           <SkeletonText :lines="3" short-last />
         </div>
         <div v-else-if="about?.content" class="about-content">
           <RichText :content="about.content" />
         </div>
-      </div>
+      </Card>
 
       <!-- GitHub Activity -->
       <div v-if="loadingGithub" class="github-loading">
@@ -46,10 +47,6 @@ defineProps<{
 </template>
 
 <style scoped>
-.about-card {
-  padding: var(--space-6);
-}
-
 .about-content {
   font-size: var(--text-lg);
   line-height: var(--leading-relaxed);

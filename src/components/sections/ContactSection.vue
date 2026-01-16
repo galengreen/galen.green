@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import Card from '@/components/ui/Card.vue'
 import { api } from '@/services/payload'
 
 defineProps<{
@@ -38,9 +39,16 @@ const submitContact = async () => {
     <div class="container container-narrow">
       <h2 class="section-title">{{ title }}</h2>
 
-      <div v-if="contactSuccess" class="contact-success">
+      <Card
+        v-if="contactSuccess"
+        padding="lg"
+        radius="sm"
+        :opacity="80"
+        :blur="12"
+        class="contact-success"
+      >
         <p>Thanks for your message! I'll get back to you soon.</p>
-      </div>
+      </Card>
 
       <form v-else class="contact-form" @submit.prevent="submitContact">
         <div class="form-group">
@@ -146,11 +154,7 @@ const submitContact = async () => {
 }
 
 .contact-success {
-  padding: var(--space-6);
-  background-color: var(--color-surface);
-  border-radius: var(--space-2);
   text-align: center;
-  box-shadow: var(--shadow-md);
 }
 
 @media (max-width: 480px) {
