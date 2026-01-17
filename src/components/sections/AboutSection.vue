@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import Card from '@/components/ui/Card.vue'
+import Card from '@/components/ui/CustomCard.vue'
 import GitHubGraph from '@/components/ui/GitHubGraph.vue'
 import RichText from '@/components/ui/RichText.vue'
 import SkeletonText from '@/components/ui/SkeletonText.vue'
