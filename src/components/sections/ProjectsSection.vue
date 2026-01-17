@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
-import Card from '@/components/ui/Card.vue'
+import Card from '@/components/ui/CustomCard.vue'
 import ProjectGallery from '@/components/ui/ProjectGallery.vue'
 import RichText from '@/components/ui/RichText.vue'
 import LazyImage from '@/components/ui/LazyImage.vue'

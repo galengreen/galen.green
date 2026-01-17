@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import Card from '@/components/ui/Card.vue'
+import Card from '@/components/ui/CustomCard.vue'
 import type { ContributionWeek } from '@/types'
 
 const props = defineProps<{

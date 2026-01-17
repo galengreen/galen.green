@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import Card from '@/components/ui/Card.vue'
+import Card from '@/components/ui/CustomCard.vue'
 import { api } from '@/services/payload'
 
 defineProps<{
