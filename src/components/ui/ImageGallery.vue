@@ -157,10 +157,7 @@ const showThumbnails = computed(() => props.images.length > 1)
   color: var(--color-text);
   cursor: pointer;
   outline: none;
-  opacity: 0;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out);
+  transition: background var(--duration-fast) var(--ease-out);
   z-index: 1;
 }
 
@@ -174,11 +171,6 @@ const showThumbnails = computed(() => props.images.length > 1)
 
 .gallery-nav-next {
   right: var(--space-2);
-}
-
-.image-gallery:hover .gallery-nav,
-.image-gallery:focus-within .gallery-nav {
-  opacity: 1;
 }
 
 /* Caption */
@@ -233,7 +225,6 @@ const showThumbnails = computed(() => props.images.length > 1)
   .gallery-nav {
     width: 32px;
     height: 32px;
-    opacity: 1;
   }
 
   .thumbnail-image {

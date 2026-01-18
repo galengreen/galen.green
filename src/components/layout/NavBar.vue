@@ -149,32 +149,14 @@ const themeIcon = computed(() => {
   transform: scale(1.1);
 }
 
-/* Mobile responsive */
-@media (max-width: 640px) {
-  .navbar-content {
-    padding: var(--space-1) var(--space-2);
-    gap: var(--space-1);
-  }
-
-  .nav-link {
-    padding: var(--space-1) var(--space-2);
-    font-size: var(--text-xs);
-  }
-
-  .theme-toggle {
-    width: 28px;
-    height: 28px;
-    font-size: var(--text-sm);
-  }
-}
-
-@media (max-width: 400px) {
+@media (max-width: 460px) {
   .nav-links {
     gap: 0;
   }
 
   .nav-link {
-    padding: var(--space-1) var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
   }
 }
 </style>

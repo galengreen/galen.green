@@ -292,6 +292,7 @@ watch(
     opacity var(--duration-fast) var(--ease-out),
     background var(--duration-fast) var(--ease-out),
     color var(--duration-fast) var(--ease-out);
+  z-index: 10;
 }
 
 .lightbox-nav:hover {

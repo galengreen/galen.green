@@ -120,10 +120,14 @@ export const createApp = ViteSSG(
         document.documentElement.classList.add('dark')
       }
 
-      // Prevent iOS Safari overscroll bounce on document
+      // Prevent iOS Safari overscroll bounce on document (but allow pinch-to-zoom)
       document.body.addEventListener(
         'touchmove',
         (e) => {
+          // Allow pinch-to-zoom (multi-touch gestures)
+          if (e.touches.length > 1) {
+            return
+          }
           // Only prevent if not scrolling inside a scrollable element
           const scrollRoot = document.getElementById('scroll-root')
           if (scrollRoot && !scrollRoot.contains(e.target as Node)) {

@@ -16,7 +16,7 @@ body {
   color: var(--color-text);
   position: fixed;
   width: 100%;
-  touch-action: none;
+  touch-action: manipulation;
 }
 
 /* Selection */

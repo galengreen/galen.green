@@ -35,6 +35,5 @@ const galleryImages = computed<GalleryImage[]>(() => {
 <style scoped>
 .project-gallery {
   width: 100%;
-  margin-top: var(--space-5);
 }
 </style>

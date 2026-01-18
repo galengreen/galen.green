@@ -234,5 +234,15 @@ watch(criticalImagesLoaded, (loaded) => {
   .home {
     padding-top: calc(var(--navbar-height) + var(--navbar-top) + var(--space-4));
   }
+
+  .page-content {
+    padding: 0 var(--space-4);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-content {
+    padding: 0 var(--space-3);
+  }
 }
 </style>

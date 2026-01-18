@@ -314,21 +314,4 @@ const legendY = computed(() => TOP_LABEL_HEIGHT + DAYS_IN_WEEK * (SQUARE_SIZE + 
   pointer-events: none;
   z-index: 10;
 }
-
-/* Responsive adjustments */
-@media (max-width: 768px) {
-  .contribution-svg {
-    min-width: 600px;
-  }
-}
-
-@media (max-width: 480px) {
-  .graph-header {
-    flex-direction: column;
-  }
-
-  .contribution-svg {
-    min-width: 500px;
-  }
-}
 </style>

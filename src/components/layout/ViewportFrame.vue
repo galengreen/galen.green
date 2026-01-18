@@ -39,7 +39,7 @@
   scroll-behavior: smooth;
   overscroll-behavior: none;
   -webkit-overflow-scrolling: touch;
-  touch-action: pan-y;
+  touch-action: pan-y pinch-zoom;
 }
 
 /* Custom scrollbar */
