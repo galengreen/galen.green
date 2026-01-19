@@ -10,7 +10,56 @@ export const Photos: CollectionConfig = {
   admin: {
     useAsTitle: 'title',
     defaultColumns: ['title', 'date', 'featured'],
+    components: {
+      beforeList: ['@/components/BulkCreatePhotos#BulkCreatePhotos'],
+    },
   },
+  endpoints: [
+    {
+      path: '/bulk-create',
+      method: 'post',
+      handler: async (req) => {
+        if (!req.user) {
+          return Response.json({ error: 'Unauthorised' }, { status: 401 })
+        }
+
+        const body = await req.json?.()
+        const mediaIds: string[] = body?.mediaIds
+
+        if (!mediaIds || !Array.isArray(mediaIds) || mediaIds.length === 0) {
+          return Response.json({ error: 'mediaIds array is required' }, { status: 400 })
+        }
+
+        const results: { created: string[]; errors: { id: string; error: string }[] } = {
+          created: [],
+          errors: [],
+        }
+
+        for (const mediaId of mediaIds) {
+          try {
+            const photo = await req.payload.create({
+              collection: 'photos',
+              data: {
+                image: mediaId,
+              },
+              user: req.user,
+            })
+            results.created.push(photo.id)
+          } catch (err) {
+            results.errors.push({
+              id: mediaId,
+              error: err instanceof Error ? err.message : 'Unknown error',
+            })
+          }
+        }
+
+        return Response.json({
+          message: `Created ${results.created.length} photos`,
+          ...results,
+        })
+      },
+    },
+  ],
   access: {
     read: () => true,
     create: isAuthenticated,
@@ -21,8 +70,8 @@ export const Photos: CollectionConfig = {
   hooks: {
     beforeChange: [
       async ({ data, req, operation }) => {
-        // Only auto-populate on create
-        if (operation === 'create' && data.image) {
+        // Only auto-populate date on create
+        if (operation === 'create' && data.image && !data.date) {
           try {
             const media = await req.payload.findByID({
               collection: 'media',
@@ -30,27 +79,13 @@ export const Photos: CollectionConfig = {
             })
 
             if (media) {
-              // Auto-populate title from filename if not provided
-              if (!data.title && media.filename) {
-                const name = media.filename.replace(/\.[^/.]+$/, '')
-                data.title = name
-                  .replace(/[-_.]/g, ' ')
-                  .replace(/([a-z])([A-Z])/g, '$1 $2')
-                  .replace(/\s+/g, ' ')
-                  .trim()
-              }
-
               // Auto-populate date from EXIF dateTaken, fallback to today
-              if (!data.date) {
-                const mediaData = media as { dateTaken?: string }
-                data.date = mediaData.dateTaken || new Date().toISOString()
-              }
+              const mediaData = media as { dateTaken?: string }
+              data.date = mediaData.dateTaken || new Date().toISOString()
             }
           } catch {
-            // Silently fail - user can set values manually
-            if (!data.date) {
-              data.date = new Date().toISOString()
-            }
+            // Silently fail - user can set date manually
+            data.date = new Date().toISOString()
           }
         }
         return data
@@ -64,14 +99,16 @@ export const Photos: CollectionConfig = {
       relationTo: 'media',
       required: true,
       admin: {
-        description: 'Upload an image - title and date will auto-populate from the file',
+        description: 'Upload an image - date will auto-populate from EXIF data if available',
+        allowCreate: true,
+        isSortable: true,
       },
     },
     {
       name: 'title',
       type: 'text',
       admin: {
-        description: 'Defaults to image filename if left empty',
+        description: 'Optional title for the photo',
       },
     },
     {
