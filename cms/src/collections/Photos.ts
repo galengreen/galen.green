@@ -44,7 +44,7 @@ export const Photos: CollectionConfig = {
               },
               user: req.user,
             })
-            results.created.push(photo.id)
+            results.created.push(String(photo.id))
           } catch (err) {
             results.errors.push({
               id: mediaId,
