@@ -1,5 +1,6 @@
 import type { CollectionConfig } from 'payload'
 import exifr from 'exifr'
+import { readFile } from 'fs/promises'
 import { isAuthenticated } from '../access/isAuthenticated'
 
 // Helper to convert filename to readable title
@@ -93,6 +94,49 @@ export const Media: CollectionConfig = {
     adminThumbnail: 'thumbnail',
   },
   hooks: {
+    // Use beforeOperation to extract EXIF before image processing converts to WebP
+    beforeOperation: [
+      async ({ args, operation, req }) => {
+        if ((operation === 'create' || operation === 'update') && req.file) {
+          // Extract EXIF date taken from the ORIGINAL image before conversion
+          try {
+            let fileBuffer: Buffer | undefined = req.file.data
+            if (!fileBuffer && req.file.tempFilePath) {
+              fileBuffer = await readFile(req.file.tempFilePath)
+            }
+
+            if (fileBuffer) {
+              const maxSizeForExif = 50 * 1024 * 1024 // 50MB
+              if (fileBuffer.length <= maxSizeForExif) {
+                const exif = await exifr.parse(fileBuffer, {
+                  tiff: true,
+                  exif: true,
+                  pick: ['DateTimeOriginal', 'CreateDate', 'ModifyDate'],
+                })
+
+                if (exif) {
+                  const dateTaken = exif.DateTimeOriginal || exif.CreateDate || exif.ModifyDate
+                  if (dateTaken instanceof Date) {
+                    req.context.exifDateTaken = dateTaken.toISOString()
+                  } else if (typeof dateTaken === 'string') {
+                    // Some EXIF data comes as string in format "YYYY:MM:DD HH:MM:SS"
+                    const parsed = new Date(
+                      dateTaken.replace(/^(\d{4}):(\d{2}):(\d{2})/, '$1-$2-$3'),
+                    )
+                    if (!isNaN(parsed.getTime())) {
+                      req.context.exifDateTaken = parsed.toISOString()
+                    }
+                  }
+                }
+              }
+            }
+          } catch {
+            // EXIF extraction failed - not all images have EXIF data
+          }
+        }
+        return args
+      },
+    ],
     beforeChange: [
       async ({ data, req }) => {
         if (req.file) {
@@ -101,25 +145,9 @@ export const Media: CollectionConfig = {
             data.alt = filenameToTitle(req.file.name)
           }
 
-          // Extract EXIF date taken from image (only for reasonable file sizes)
-          // Skip EXIF parsing for very large files to avoid performance issues
-          const maxSizeForExif = 50 * 1024 * 1024 // 50MB
-          if (req.file.data.length <= maxSizeForExif) {
-            try {
-              const exif = await exifr.parse(req.file.data, {
-                pick: ['DateTimeOriginal', 'CreateDate', 'ModifyDate'],
-              })
-
-              if (exif) {
-                // Try DateTimeOriginal first, then CreateDate, then ModifyDate
-                const dateTaken = exif.DateTimeOriginal || exif.CreateDate || exif.ModifyDate
-                if (dateTaken instanceof Date) {
-                  data.dateTaken = dateTaken.toISOString()
-                }
-              }
-            } catch {
-              // EXIF extraction failed - not all images have EXIF data
-            }
+          // Apply EXIF date from beforeOperation hook
+          if (req.context.exifDateTaken && typeof req.context.exifDateTaken === 'string') {
+            data.dateTaken = req.context.exifDateTaken
           }
         }
         return data
