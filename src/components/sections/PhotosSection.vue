@@ -114,20 +114,14 @@ const photosWithDimensions = computed(() => {
 
 /* skeleton class is defined globally in transitions.css */
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .photos-grid-loading {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: var(--space-3);
   }
 
   .photo-item:hover {
     transform: none;
-  }
-}
-
-@media (max-width: 480px) {
-  .photos-grid-loading {
-    grid-template-columns: 1fr;
   }
 }
 </style>

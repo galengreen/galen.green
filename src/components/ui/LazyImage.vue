@@ -165,7 +165,8 @@ onUnmounted(() => {
 .image-blur,
 .image-main,
 .image-shimmer,
-.image-error {
+.image-error,
+picture {
   position: absolute;
   top: 0;
   left: 0;

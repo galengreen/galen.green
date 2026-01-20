@@ -231,10 +231,4 @@ const showThumbnails = computed(() => props.images.length > 1)
     width: 60px;
   }
 }
-
-@media (max-width: 480px) {
-  .thumbnail-image {
-    width: 50px;
-  }
-}
 </style>

@@ -93,6 +93,16 @@ watch(
           <IconClose />
         </button>
 
+        <!-- Previous button -->
+        <button
+          v-if="hasMultiple"
+          class="lightbox-btn lightbox-nav-prev"
+          aria-label="Previous photo"
+          @click="goToPrevious"
+        >
+          <IconChevronLeft />
+        </button>
+
         <!-- Info toggle button -->
         <button
           class="lightbox-btn lightbox-info-toggle"
@@ -103,20 +113,20 @@ watch(
           <IconInfo />
         </button>
 
+        <!-- Next button -->
+        <button
+          v-if="hasMultiple"
+          class="lightbox-btn lightbox-nav-next"
+          aria-label="Next photo"
+          @click="goToNext"
+        >
+          <IconChevronRight />
+        </button>
+
         <!-- Main content area -->
         <div class="lightbox-content" :class="{ 'info-open': showInfo }">
           <!-- Image container -->
           <div class="lightbox-image-container">
-            <!-- Previous button -->
-            <button
-              v-if="hasMultiple"
-              class="lightbox-nav lightbox-nav-prev"
-              aria-label="Previous photo"
-              @click="goToPrevious"
-            >
-              <IconChevronLeft :size="32" />
-            </button>
-
             <!-- Photo -->
             <div class="lightbox-image-wrapper">
               <LazyImage
@@ -132,16 +142,6 @@ watch(
                 eager
               />
             </div>
-
-            <!-- Next button -->
-            <button
-              v-if="hasMultiple"
-              class="lightbox-nav lightbox-nav-next"
-              aria-label="Next photo"
-              @click="goToNext"
-            >
-              <IconChevronRight :size="32" />
-            </button>
           </div>
 
           <!-- Info panel -->
@@ -175,13 +175,13 @@ watch(
 /* Top buttons */
 .lightbox-btn {
   position: absolute;
-  top: var(--space-4);
+  top: var(--space-6);
   width: 44px;
   height: 44px;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: transparent;
+  background: rgba(0, 0, 0, 0.8);
   border: none;
   color: rgba(255, 255, 255, 0.7);
   cursor: pointer;
@@ -192,22 +192,27 @@ watch(
   z-index: 10;
 }
 
-.lightbox-btn:hover {
-  color: white;
-  background: rgba(255, 255, 255, 0.1);
-}
-
 .lightbox-close {
-  left: var(--space-4);
+  left: var(--space-6);
 }
 
 .lightbox-info-toggle {
-  right: var(--space-4);
+  right: var(--space-6);
 }
 
-.lightbox-info-toggle.active {
-  color: white;
-  background: rgba(255, 255, 255, 0.15);
+/* Navigation buttons */
+.lightbox-nav-prev {
+  left: var(--space-6);
+  top: 47%;
+}
+
+.lightbox-nav-next {
+  right: var(--space-6);
+  top: 47%;
+}
+
+.lightbox-overlay:hover .lightbox-nav {
+  opacity: 1;
 }
 
 /* Main content */
@@ -215,7 +220,7 @@ watch(
   display: flex;
   width: 100%;
   height: 100%;
-  padding: var(--space-16) var(--space-4);
+  padding: var(--space-4);
   transition: padding var(--duration-normal) var(--ease-out);
 }
 
@@ -243,10 +248,10 @@ watch(
 
 .lightbox-image {
   max-width: 100%;
-  max-height: calc(100vh - var(--space-16) * 2);
+  max-height: 100%;
   width: auto;
   height: auto;
-  border-radius: var(--radius-sm);
+  border-radius: 15px;
 }
 
 /* Override LazyImage styles for lightbox */
@@ -262,6 +267,7 @@ watch(
   display: none;
 }
 
+.lightbox-image :deep(picture),
 .lightbox-image :deep(.image-main),
 .lightbox-image :deep(.image-blur) {
   position: relative;
@@ -270,46 +276,6 @@ watch(
   max-width: 100%;
   max-height: calc(100vh - var(--space-16) * 2);
   object-fit: contain;
-}
-
-/* Navigation buttons */
-.lightbox-nav {
-  position: absolute;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255, 255, 255, 0.03);
-  border: none;
-  color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
-  border-radius: 50%;
-  opacity: 0;
-  transition:
-    opacity var(--duration-fast) var(--ease-out),
-    background var(--duration-fast) var(--ease-out),
-    color var(--duration-fast) var(--ease-out);
-  z-index: 10;
-}
-
-.lightbox-nav:hover {
-  background: rgba(0, 0, 0, 0.7);
-  color: white;
-}
-
-.lightbox-nav-prev {
-  left: var(--space-4);
-}
-
-.lightbox-nav-next {
-  right: var(--space-4);
-}
-
-.lightbox-overlay:hover .lightbox-nav {
-  opacity: 1;
 }
 
 /* Info panel */
@@ -362,7 +328,7 @@ watch(
 @media (max-width: 768px) {
   .lightbox-content {
     flex-direction: column;
-    padding: var(--space-16) var(--space-2);
+    padding: var(--space-2) var(--space-2);
   }
 
   .lightbox-content.info-open {
@@ -375,25 +341,11 @@ watch(
     opacity: 1;
   }
 
-  .lightbox-nav-prev {
-    left: var(--space-2);
-  }
-
-  .lightbox-nav-next {
-    right: var(--space-2);
-  }
-
   .lightbox-info {
     width: 100%;
     max-height: 40vh;
     padding: var(--space-4);
     border-radius: var(--radius-md) var(--radius-md) 0 0;
-  }
-
-  .lightbox-image :deep(.image-main),
-  .lightbox-image :deep(.image-blur),
-  .lightbox-image :deep(.lazy-image-container) {
-    max-height: calc(60vh - var(--space-16));
   }
 
   .slide-left-enter-from,
