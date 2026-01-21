@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, computed } from 'vue'
+import { ref, onMounted, onUnmounted, computed, watch, nextTick } from 'vue'
 
 const props = withDefaults(
   defineProps<{
@@ -48,10 +48,27 @@ const handleError = () => {
   isLoaded.value = true
 }
 
+// Check if image is already cached/complete (e.g., from preloading)
+const checkIfAlreadyLoaded = () => {
+  nextTick(() => {
+    if (imageRef.value?.complete && imageRef.value.naturalWidth > 0) {
+      isLoaded.value = true
+    }
+  })
+}
+
+// Watch for imageRef to be available and check if already loaded
+watch(imageRef, (img) => {
+  if (img?.complete && img.naturalWidth > 0) {
+    isLoaded.value = true
+  }
+})
+
 onMounted(() => {
   // If eager loading, skip IntersectionObserver
   if (props.eager) {
     isInView.value = true
+    checkIfAlreadyLoaded()
     return
   }
 
@@ -112,6 +129,7 @@ onUnmounted(() => {
 
     <!-- Shimmer placeholder when no thumbnail -->
     <div v-else-if="!isLoaded && !thumbnailSrc" class="image-shimmer"></div>
+    <div v-else-if="!isLoaded" class="image-shimmer"></div>
 
     <!-- Main image with <picture> for AVIF/WebP (only loads when in view) -->
     <picture v-if="isInView && !hasError && usePicture">
@@ -183,10 +201,13 @@ picture {
     opacity var(--duration-normal) var(--ease-out),
     filter var(--duration-slow) var(--ease-out),
     transform var(--duration-slow) var(--ease-out);
+  /* Delay blur fade-out until main image transition completes (250ms) */
+  transition: opacity var(--duration-fast) var(--ease-out) var(--duration-normal);
 }
 
 .loaded .image-blur {
   opacity: 0;
+  pointer-events: none;
 }
 
 /* Shimmer effect when no thumbnail */

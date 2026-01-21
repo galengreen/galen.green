@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
 
 const { theme, toggleTheme, initTheme } = useTheme()
+const route = useRoute()
+const router = useRouter()
 
 const sections = [
   { id: 'hero', label: 'About' },
@@ -11,6 +14,8 @@ const sections = [
   { id: 'photos', label: 'Photos' },
   { id: 'contact', label: 'Contact' },
 ]
+
+const isHomePage = computed(() => route.name === 'home')
 
 const getScrollRoot = () => document.getElementById('scroll-root')
 
@@ -26,6 +31,16 @@ const scrollToSection = (id: string) => {
       top: elementTop - navbarOffset,
       behavior: 'smooth',
     })
+  }
+}
+
+const navigateToSection = (id: string) => {
+  if (isHomePage.value) {
+    // On home page, scroll directly
+    scrollToSection(id)
+  } else {
+    // On other pages, navigate to home with hash
+    router.push({ name: 'home', hash: `#${id}` })
   }
 }
 
@@ -65,7 +80,7 @@ const themeIcon = computed(() => {
     <div class="navbar-content">
       <ul class="nav-links">
         <li v-for="section in sections" :key="section.id">
-          <button class="nav-link" @click="scrollToSection(section.id)">
+          <button class="nav-link" @click="navigateToSection(section.id)">
             {{ section.label }}
           </button>
         </li>

@@ -11,7 +11,7 @@ const emit = defineEmits<{
   photoClick: [id: string]
 }>()
 
-const MOBILE_BREAKPOINT = 768
+const MOBILE_BREAKPOINT = 500
 
 const columns = ref(getColumnCount())
 
@@ -114,10 +114,6 @@ onUnmounted(() => {
   min-width: 0;
   cursor: pointer;
   transition: transform var(--duration-fast) var(--ease-out);
-}
-
-.masonry__item:hover {
-  transform: scale(1.02);
 }
 
 .masonry__placeholder {

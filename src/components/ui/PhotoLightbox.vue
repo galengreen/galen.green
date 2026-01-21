@@ -261,10 +261,23 @@ watch(
   height: auto;
   max-width: 100%;
   max-height: calc(100vh - var(--space-16) * 2);
+  border-radius: 15px;
 }
 
 .lightbox-image :deep(.aspect-placeholder) {
   display: none;
+}
+
+/* Override shimmer to use dark colours in lightbox */
+.lightbox-image :deep(.image-shimmer) {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.3) 0%,
+    rgba(0, 0, 0, 0.5) 50%,
+    rgba(0, 0, 0, 0.3) 100%
+  );
+  background-size: 200% 100%;
+  border-radius: 0px;
 }
 
 .lightbox-image :deep(picture),
@@ -276,6 +289,7 @@ watch(
   max-width: 100%;
   max-height: calc(100vh - var(--space-16) * 2);
   object-fit: contain;
+  border-radius: 0px;
 }
 
 /* Info panel */

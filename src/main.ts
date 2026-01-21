@@ -79,14 +79,45 @@ export const createApp = ViteSSG(
     routes,
     base: import.meta.env.BASE_URL,
     scrollBehavior(to, _from, savedPosition) {
+      // Handle hash navigation with custom scroll root
+      if (to.hash) {
+        const scrollToElement = (element: Element) => {
+          const scrollRoot = document.getElementById('scroll-root')
+          if (scrollRoot) {
+            const elementTop = (element as HTMLElement).offsetTop
+            const navbarOffset = 100
+            scrollRoot.scrollTo({
+              top: elementTop - navbarOffset,
+              behavior: 'smooth',
+            })
+          }
+        }
+
+        // Try immediately if element exists
+        const element = document.querySelector(to.hash)
+        if (element) {
+          scrollToElement(element)
+        } else {
+          // Use MutationObserver to wait for element to appear
+          const observer = new MutationObserver((_mutations, obs) => {
+            const el = document.querySelector(to.hash)
+            if (el) {
+              obs.disconnect()
+              scrollToElement(el)
+            }
+          })
+          observer.observe(document.body, { childList: true, subtree: true })
+        }
+        // Return false to prevent default scroll behaviour
+        return false
+      }
       if (savedPosition) {
         return savedPosition
       }
-      if (to.hash) {
-        return {
-          el: to.hash,
-          behavior: 'smooth',
-        }
+      // Scroll custom scroll root to top
+      const scrollRoot = document.getElementById('scroll-root')
+      if (scrollRoot) {
+        scrollRoot.scrollTo({ top: 0 })
       }
       return { top: 0 }
     },

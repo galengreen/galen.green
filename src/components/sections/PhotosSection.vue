@@ -99,11 +99,6 @@ const photosWithDimensions = computed(() => {
   border-radius: var(--space-2);
   box-shadow: var(--shadow-md);
   cursor: pointer;
-  transition: transform var(--duration-fast) var(--ease-out);
-}
-
-.photo-item:hover {
-  transform: scale(1.02);
 }
 
 .photo-image {
@@ -118,10 +113,6 @@ const photosWithDimensions = computed(() => {
   .photos-grid-loading {
     grid-template-columns: 1fr;
     gap: var(--space-3);
-  }
-
-  .photo-item:hover {
-    transform: none;
   }
 }
 </style>
