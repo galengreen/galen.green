@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import { ref, watch, onMounted, onUnmounted } from 'vue'
+import { ref, computed } from 'vue'
 import Card from '@/components/ui/CustomCard.vue'
-import ProjectGallery from '@/components/ui/ProjectGallery.vue'
-import RichText from '@/components/ui/RichText.vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import SkeletonText from '@/components/ui/SkeletonText.vue'
 import SkeletonBox from '@/components/ui/SkeletonBox.vue'
-import { IconClose } from '@/components/icons'
+import ContentLightbox from '@/components/ui/ContentLightbox.vue'
+import ProjectGallery from '@/components/ui/ProjectGallery.vue'
+import RichText from '@/components/ui/RichText.vue'
 import {
   getImageUrl,
   getImageSrcset,
   getImageSrcsetAvif,
   imageSizesPresets,
 } from '@/composables/useMedia'
-import { useImagePreloader } from '@/composables/useImagePreloader'
-import type { Project, Media } from '@/types'
+import type { Project } from '@/types'
 
 const props = defineProps<{
   title: string
@@ -24,55 +23,19 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const expandedProject = ref<string | null>(null)
-const { prefetchMediaOnIdle } = useImagePreloader()
+const selectedProjectId = ref<string | null>(null)
 
-const toggleProject = (id: string) => {
-  expandedProject.value = expandedProject.value === id ? null : id
-}
-
-const closeExpanded = () => {
-  expandedProject.value = null
-}
-
-const handleKeydown = (e: KeyboardEvent) => {
-  if (e.key === 'Escape' && expandedProject.value) {
-    closeExpanded()
-  }
-}
-
-onMounted(() => {
-  document.addEventListener('keydown', handleKeydown)
-})
-
-onUnmounted(() => {
-  document.removeEventListener('keydown', handleKeydown)
-})
-
-// Prefetch all project gallery images when projects are loaded
-watch(
-  () => props.projects,
-  (projects) => {
-    if (projects.length > 0) {
-      // Collect all gallery images from all projects
-      const allGalleryImages: Media[] = []
-      for (const project of projects) {
-        if (project.images?.length) {
-          for (const img of project.images) {
-            if (img.image) {
-              allGalleryImages.push(img.image)
-            }
-          }
-        }
-      }
-      // Prefetch at 'lg' size (used in gallery main view)
-      if (allGalleryImages.length > 0) {
-        prefetchMediaOnIdle(allGalleryImages, 'lg')
-      }
-    }
-  },
-  { immediate: true },
+const selectedProject = computed(
+  () => props.projects.find((p) => p.id === selectedProjectId.value) || null,
 )
+
+const openProject = (id: string) => {
+  selectedProjectId.value = id
+}
+
+const closeProject = () => {
+  selectedProjectId.value = null
+}
 </script>
 
 <template>
@@ -97,14 +60,8 @@ watch(
           :opacity="80"
           :blur="12"
           class="project-card"
-          :class="{ expanded: expandedProject === project.id }"
         >
-          <!-- Collapsed: clickable header with thumbnail -->
-          <button
-            v-if="expandedProject !== project.id"
-            class="project-header"
-            @click="toggleProject(project.id)"
-          >
+          <button class="project-link" @click="openProject(project.id)">
             <LazyImage
               v-if="project.images?.[0]?.image"
               :src="getImageUrl(project.images[0].image, 'md')"
@@ -127,71 +84,68 @@ watch(
               </div>
             </div>
           </button>
-
-          <!-- Expanded: Gallery at top, info below -->
-          <div v-else class="project-expanded">
-            <!-- Gallery at TOP (full width) -->
-            <div class="project-gallery-container" @click.stop>
-              <!-- Close button styled like nav buttons -->
-              <button
-                class="project-close"
-                aria-label="Close project"
-                @click.stop="toggleProject(project.id)"
-              >
-                <IconClose />
-              </button>
-              <ProjectGallery
-                v-if="project.images?.length"
-                :images="project.images"
-                :project-title="project.title"
-              />
-            </div>
-
-            <!-- Info section BELOW gallery -->
-            <div class="project-info">
-              <div class="project-title-row">
-                <button class="project-title-btn" @click="toggleProject(project.id)">
-                  <h3>{{ project.title }}</h3>
-                </button>
-                <div v-if="project.githubUrl || project.liveUrl" class="project-icon-links">
-                  <a
-                    v-if="project.githubUrl"
-                    :href="project.githubUrl"
-                    target="_blank"
-                    rel="noopener"
-                    class="icon-link"
-                  >
-                    <FontAwesomeIcon :icon="['fab', 'github']" />
-                    <span class="tooltip">GitHub</span>
-                  </a>
-                  <a
-                    v-if="project.liveUrl"
-                    :href="project.liveUrl"
-                    target="_blank"
-                    rel="noopener"
-                    class="icon-link"
-                  >
-                    <FontAwesomeIcon :icon="['fas', 'external-link']" />
-                    <span class="tooltip">Live</span>
-                  </a>
-                </div>
-              </div>
-              <p>{{ project.excerpt }}</p>
-              <div class="project-tags">
-                <span v-for="tech in project.techStack" :key="tech.tech" class="tag">
-                  {{ tech.tech }}
-                </span>
-              </div>
-              <div class="project-description">
-                <RichText v-if="project.description" :content="project.description" />
-                <p v-else class="text-muted">{{ project.excerpt }}</p>
-              </div>
-            </div>
-          </div>
         </Card>
       </div>
 
       <EmptyState v-else message="Projects coming soon..." />
+
+      <!-- Project Lightbox -->
+      <ContentLightbox :open="!!selectedProject" @close="closeProject">
+        <template v-if="selectedProject">
+          <!-- Gallery -->
+          <div v-if="selectedProject.images?.length" class="lightbox-gallery">
+            <ProjectGallery
+              :images="selectedProject.images"
+              :project-title="selectedProject.title"
+            />
+          </div>
+
+          <!-- Content -->
+          <div class="lightbox-content">
+            <div class="lightbox-header">
+              <h2 class="lightbox-title">{{ selectedProject.title }}</h2>
+              <div
+                v-if="selectedProject.githubUrl || selectedProject.liveUrl"
+                class="lightbox-links"
+              >
+                <a
+                  v-if="selectedProject.githubUrl"
+                  :href="selectedProject.githubUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="lightbox-link"
+                >
+                  <FontAwesomeIcon :icon="['fab', 'github']" />
+                  <span>GitHub</span>
+                </a>
+                <a
+                  v-if="selectedProject.liveUrl"
+                  :href="selectedProject.liveUrl"
+                  target="_blank"
+                  rel="noopener"
+                  class="lightbox-link"
+                >
+                  <FontAwesomeIcon :icon="['fas', 'external-link']" />
+                  <span>Live Site</span>
+                </a>
+              </div>
+            </div>
+
+            <div v-if="selectedProject.techStack?.length" class="lightbox-tags">
+              <span v-for="tech in selectedProject.techStack" :key="tech.tech" class="tag">
+                {{ tech.tech }}
+              </span>
+            </div>
+
+            <div class="lightbox-description">
+              <p v-if="selectedProject.excerpt" class="lightbox-excerpt">
+                {{ selectedProject.excerpt }}
+              </p>
+              <RichText v-if="selectedProject.description" :content="selectedProject.description" />
+            </div>
+          </div>
+        </template>
+      </ContentLightbox>
     </div>
   </section>
 </template>
@@ -207,44 +161,16 @@ watch(
   overflow: hidden;
 }
 
-.project-card.expanded {
-  grid-column: 1 / -1;
-  position: relative;
-}
-
-/* Close button - styled like gallery nav buttons */
-.project-close {
-  position: absolute;
-  top: var(--space-2);
-  left: var(--space-2);
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 50%;
-  color: var(--color-text);
-  cursor: pointer;
-  outline: none;
-  z-index: 10;
-  transition: background var(--duration-fast) var(--ease-out);
-}
-
-.project-close:hover {
-  background: var(--color-surface);
-}
-
-.project-header {
+.project-link {
+  display: block;
   width: 100%;
+  color: inherit;
+  text-decoration: none;
   text-align: left;
-  cursor: pointer;
   background: none;
   border: none;
-  color: inherit;
-  font: inherit;
   padding: 0;
+  cursor: pointer;
 }
 
 .project-thumbnail {
@@ -267,57 +193,15 @@ watch(
 
 .project-info h3 {
   font-size: var(--text-lg);
-}
-
-/* Title row with icon links */
-.project-title-row {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-/* Icon links with tooltips */
-.project-icon-links {
-  display: flex;
-  gap: var(--space-3);
-}
-
-.icon-link {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-text);
-  font-size: var(--text-xl);
   transition: color var(--duration-fast) var(--ease-out);
 }
 
-.icon-link:hover {
-  color: var(--color-text);
+.project-link:hover .project-info h3 {
+  color: var(--color-primary);
 }
 
-.icon-link .tooltip {
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: var(--space-1) var(--space-2);
-  font-size: var(--text-xs);
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity var(--duration-fast) var(--ease-out);
-  margin-bottom: var(--space-1);
-}
-
-.icon-link:hover .tooltip {
-  opacity: 1;
-}
-
-.project-tags {
+.project-tags,
+.lightbox-tags {
   display: flex;
   flex-wrap: wrap;
   gap: var(--space-2);
@@ -333,38 +217,70 @@ watch(
   border-radius: var(--space-1);
 }
 
-/* Expanded layout */
-.project-expanded {
-  display: flex;
-  flex-direction: column;
-}
-
-.project-gallery-container {
-  position: relative;
+/* Lightbox content styles */
+.lightbox-gallery {
   width: 100%;
+  padding: var(--space-3);
 }
 
-.project-title-btn {
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-align: left;
-  color: inherit;
-  font: inherit;
+.lightbox-content {
+  padding: var(--space-6);
 }
 
-.project-title-btn:hover h3 {
-  color: var(--color-primary);
+.lightbox-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-4);
 }
 
-.project-description {
+.lightbox-title {
+  font-size: var(--text-3xl);
+  line-height: var(--leading-tight);
+}
+
+.lightbox-links {
+  display: flex;
+  gap: var(--space-3);
+  flex-shrink: 0;
+}
+
+.lightbox-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  transition:
+    background var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out);
+}
+
+.lightbox-link:hover {
+  background: var(--color-background);
+  border-color: var(--color-text-muted);
+}
+
+.lightbox-tags {
+  margin-bottom: var(--space-4);
+}
+
+.lightbox-description {
   font-size: var(--text-base);
   line-height: var(--leading-relaxed);
-  margin-top: var(--space-3);
 }
 
-/* skeleton classes are defined globally in transitions.css */
+.lightbox-excerpt {
+  font-size: var(--text-lg);
+  color: var(--color-text-muted);
+  margin-bottom: var(--space-4);
+}
 
 @media (max-width: 768px) {
   .projects-grid {
@@ -372,14 +288,27 @@ watch(
     gap: var(--space-4);
   }
 
-  .project-expanded .project-info {
+  .lightbox-content {
     padding: var(--space-4);
+  }
+
+  .lightbox-title {
+    font-size: var(--text-2xl);
+  }
+
+  .lightbox-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 }
 
 @media (max-width: 480px) {
   .project-info h3 {
     font-size: var(--text-base);
+  }
+
+  .lightbox-title {
+    font-size: var(--text-xl);
   }
 }
 </style>

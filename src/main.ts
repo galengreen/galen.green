@@ -81,34 +81,16 @@ export const createApp = ViteSSG(
     scrollBehavior(to, _from, savedPosition) {
       // Handle hash navigation with custom scroll root
       if (to.hash) {
-        const scrollToElement = (element: Element) => {
-          const scrollRoot = document.getElementById('scroll-root')
-          if (scrollRoot) {
-            const elementTop = (element as HTMLElement).offsetTop
-            const navbarOffset = 100
-            scrollRoot.scrollTo({
-              top: elementTop - navbarOffset,
-              behavior: 'smooth',
-            })
-          }
-        }
-
-        // Try immediately if element exists
         const element = document.querySelector(to.hash)
-        if (element) {
-          scrollToElement(element)
-        } else {
-          // Use MutationObserver to wait for element to appear
-          const observer = new MutationObserver((_mutations, obs) => {
-            const el = document.querySelector(to.hash)
-            if (el) {
-              obs.disconnect()
-              scrollToElement(el)
-            }
+        const scrollRoot = document.getElementById('scroll-root')
+        if (element && scrollRoot) {
+          const elementTop = (element as HTMLElement).offsetTop
+          const navbarOffset = 100
+          scrollRoot.scrollTo({
+            top: elementTop - navbarOffset,
+            behavior: 'smooth',
           })
-          observer.observe(document.body, { childList: true, subtree: true })
         }
-        // Return false to prevent default scroll behaviour
         return false
       }
       if (savedPosition) {
@@ -159,9 +141,14 @@ export const createApp = ViteSSG(
           if (e.touches.length > 1) {
             return
           }
-          // Only prevent if not scrolling inside a scrollable element
+          // Allow scrolling inside scroll-root or any lightbox overlay
           const scrollRoot = document.getElementById('scroll-root')
-          if (scrollRoot && !scrollRoot.contains(e.target as Node)) {
+          const target = e.target as Node
+          const isInScrollRoot = scrollRoot && scrollRoot.contains(target)
+          const isInLightbox = (target as Element).closest?.(
+            '.content-lightbox-scroll, .lightbox-overlay',
+          )
+          if (!isInScrollRoot && !isInLightbox) {
             e.preventDefault()
           }
         },

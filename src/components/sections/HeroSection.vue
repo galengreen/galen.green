@@ -197,10 +197,7 @@ const foregroundParallaxStyle = computed(() => ({
         <div v-else class="hero-image-placeholder"></div>
       </div>
       <div class="hero-text">
-        <h1 class="hero-name">
-          <span class="name-first">{{ firstName }}</span>
-          <span class="name-last">{{ lastName }}</span>
-        </h1>
+        <h1 class="hero-name">{{ firstName }} {{ lastName }}</h1>
         <p class="hero-subtitle">
           {{ about?.subtitle }}
         </p>
@@ -306,10 +303,12 @@ const foregroundParallaxStyle = computed(() => ({
   font-weight: 700;
   line-height: 1;
   letter-spacing: -0.02em;
+  text-shadow: var(--text-shadow-hero);
 }
 
 .hero-subtitle {
-  font-size: var(--text-xl);
+  font-size: var(--text-2xl);
+  text-shadow: var(--text-shadow-hero);
 }
 
 @media (max-width: 768px) {
@@ -342,17 +341,17 @@ const foregroundParallaxStyle = computed(() => ({
   }
 
   .hero-name {
-    font-size: var(--text-5xl);
-  }
-
-  .hero-subtitle {
-    font-size: var(--text-lg);
+    font-size: var(--text-6xl);
   }
 }
 
 @media (max-width: 480px) {
   .hero-name {
-    font-size: var(--text-4xl);
+    font-size: var(--text-5xl);
+  }
+
+  .hero-subtitle {
+    font-size: var(--text-lg);
   }
 
   .hero-photo,

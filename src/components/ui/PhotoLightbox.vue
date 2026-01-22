@@ -281,15 +281,19 @@ watch(
 }
 
 .lightbox-image :deep(picture),
-.lightbox-image :deep(.image-main),
-.lightbox-image :deep(.image-blur) {
+.lightbox-image :deep(.image-main) {
   position: relative;
   width: auto;
   height: auto;
   max-width: 100%;
   max-height: calc(100vh - var(--space-16) * 2);
   object-fit: contain;
-  border-radius: 0px;
+  border-radius: 15px;
+}
+
+/* Blur stays absolutely positioned to overlay the image */
+.lightbox-image :deep(.image-blur) {
+  border-radius: 15px;
 }
 
 /* Info panel */

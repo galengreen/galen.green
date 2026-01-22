@@ -7,9 +7,4 @@ export const routes: RouteRecordRaw[] = [
     name: 'home',
     component: HomeView,
   },
-  {
-    path: '/blog/:slug',
-    name: 'blog-post',
-    component: () => import('../views/BlogPostView.vue'),
-  },
 ]
