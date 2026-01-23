@@ -85,6 +85,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             VERSION=${{ steps.version.outputs.version }}
+            VITE_MATOMO_URL=https://analytics.galen.green
 
   # Build and push CMS image
   build-cms:
