@@ -7,7 +7,8 @@ This document lists all environment variables used in the galen.green infrastruc
 ```mermaid
 flowchart TB
     subgraph Frontend["Frontend (Vite Dev)"]
-        FE_ENV["CMS_URL<br/>(runtime, for Vite proxy)"]
+        FE_ENV["CMS_URL<br/>MATOMO_URL<br/>(runtime, for Vite proxy)"]
+        FE_BUILD["VITE_MATOMO_URL<br/>(build-time)"]
     end
 
     subgraph CMS["CMS (Payload/Next.js)"]
@@ -28,6 +29,12 @@ flowchart TB
 ### galen-frontend
 
 No environment variables required. The nginx config and static assets are baked into the image.
+
+**Build-time variable** (set during `npm run build`):
+
+| Variable          | Required | Example Value                   |
+| ----------------- | -------- | ------------------------------- |
+| `VITE_MATOMO_URL` | No       | `https://analytics.galen.green` |
 
 ### galen-cms
 
@@ -168,6 +175,15 @@ The `CMS_URL` environment variable controls where Vite proxies requests:
 - **Production**: `https://galen.green`
 - **Tailscale**: `http://100.99.201.124:3000`
 
+The `MATOMO_URL` environment variable controls where Vite proxies `/analytics` requests:
+
+- **Default**: `http://localhost:8080`
+- **Tailscale**: `http://100.99.201.124:8083`
+
+The `VITE_MATOMO_URL` variable is baked into the frontend at build time for analytics tracking:
+
+- **Production**: `https://analytics.galen.green`
+
 ### CMS (cms/.env)
 
 ```sh
@@ -192,6 +208,10 @@ MONGO_PASSWORD=devpassword
 # CMS
 PAYLOAD_SECRET=dev-secret-not-for-production-use
 CMS_URL=http://localhost:3000
+
+# Analytics (Matomo)
+VITE_MATOMO_URL=https://analytics.galen.green
+MATOMO_URL=http://localhost:8080
 ```
 
 ## Security Notes

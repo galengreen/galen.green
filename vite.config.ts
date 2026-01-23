@@ -9,6 +9,7 @@ import vueDevTools from 'vite-plugin-vue-devtools'
 export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const cmsUrl = env.CMS_URL || 'http://localhost:3000'
+  const matomoUrl = env.MATOMO_URL || 'http://localhost:8080'
 
   return {
     plugins: [vue(), vueJsx(), vueDevTools()],
@@ -37,6 +38,11 @@ export default defineConfig(({ mode }) => {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
           },
+        },
+        '/analytics': {
+          target: matomoUrl,
+          changeOrigin: true,
+          rewrite: (path) => path.replace(/^\/analytics/, ''),
         },
       },
     },

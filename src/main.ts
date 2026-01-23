@@ -3,6 +3,7 @@ import { createPinia } from 'pinia'
 import PrimeVue from 'primevue/config'
 import { definePreset } from '@primevue/themes'
 import Aura from '@primevue/themes/aura'
+import VueMatomo from 'vue-matomo'
 
 // Font Awesome
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -131,6 +132,18 @@ export const createApp = ViteSSG(
 
       if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
         document.documentElement.classList.add('dark')
+      }
+
+      // Matomo Analytics
+      const matomoUrl = import.meta.env.VITE_MATOMO_URL
+      if (matomoUrl) {
+        app.use(VueMatomo, {
+          host: matomoUrl,
+          siteId: 1,
+          trackerFileName: 'matomo',
+          enableLinkTracking: true,
+          trackInitialView: true,
+        })
       }
 
       // Prevent iOS Safari overscroll bounce on document (but allow pinch-to-zoom)
