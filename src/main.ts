@@ -105,7 +105,7 @@ export const createApp = ViteSSG(
       return { top: 0 }
     },
   },
-  ({ app, isClient }) => {
+  ({ app, router, isClient }) => {
     const pinia = createPinia()
     app.use(pinia)
 
@@ -140,6 +140,7 @@ export const createApp = ViteSSG(
         app.use(VueMatomo, {
           host: matomoUrl,
           siteId: 1,
+          router,
           trackerFileName: 'matomo',
           enableLinkTracking: true,
           trackInitialView: true,
