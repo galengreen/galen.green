@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
       },
     },
     optimizeDeps: {
-      include: ['vue', 'vue-router', 'pinia'],
+      include: ['vue', 'vue-router'],
     },
     server: {
       proxy: {

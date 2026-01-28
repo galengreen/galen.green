@@ -43,7 +43,13 @@ export default buildConfig({
   collections: [Users, Media, Photos, Projects, BlogPosts, ContactSubmissions],
   globals: [SiteSettings, About, GitHubStats],
   editor: lexicalEditor(),
-  secret: process.env.PAYLOAD_SECRET || 'CHANGE_ME_IN_PRODUCTION',
+  secret: (() => {
+    const secret = process.env.PAYLOAD_SECRET
+    if (!secret) {
+      throw new Error('PAYLOAD_SECRET environment variable is required')
+    }
+    return secret
+  })(),
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

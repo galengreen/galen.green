@@ -162,11 +162,19 @@ export async function POST(request: Request) {
   try {
     const corsHeaders = getCorsHeaders(request)
 
-    // Optional: Add a secret key check for the cron job
+    // Require CRON_SECRET authentication
     const authHeader = request.headers.get('authorization')
     const cronSecret = process.env.CRON_SECRET
 
-    if (cronSecret && authHeader !== `Bearer ${cronSecret}`) {
+    if (!cronSecret) {
+      console.error('CRON_SECRET not configured - POST endpoint disabled')
+      return NextResponse.json(
+        { error: 'Endpoint not configured' },
+        { status: 503, headers: corsHeaders },
+      )
+    }
+
+    if (authHeader !== `Bearer ${cronSecret}`) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401, headers: corsHeaders })
     }
 

@@ -26,12 +26,17 @@ const props = defineProps<{
   content: LexicalRoot | unknown
 }>()
 
+// Escape string for use in HTML attributes
+const escapeAttr = (s: string): string =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
+
 // Build responsive picture element HTML string
 const buildPictureElement = (media: Media, alt: string): string => {
   const src = getImageUrl(media, 'lg')
   const srcsetAvif = getImageSrcsetAvif(media)
   const srcsetWebp = getImageSrcset(media)
   const sizes = '(max-width: 720px) 100vw, 720px' // matches container width
+  const safeAlt = escapeAttr(alt)
 
   let pictureHtml = '<picture>'
 
@@ -42,7 +47,7 @@ const buildPictureElement = (media: Media, alt: string): string => {
     pictureHtml += `<source srcset="${srcsetWebp}" sizes="${sizes}" type="image/webp" />`
   }
 
-  pictureHtml += `<img src="${src}" alt="${alt}" loading="lazy" />`
+  pictureHtml += `<img src="${src}" alt="${safeAlt}" loading="lazy" />`
   pictureHtml += '</picture>'
 
   return pictureHtml
@@ -94,7 +99,8 @@ const renderNode = (node: LexicalNode): string => {
       return `<li>${children}</li>`
     case 'link': {
       const target = node.newTab ? ' target="_blank" rel="noopener"' : ''
-      return `<a href="${node.url}"${target}>${children}</a>`
+      const safeUrl = node.url?.startsWith('javascript:') ? '#' : node.url
+      return `<a href="${safeUrl}"${target}>${children}</a>`
     }
     case 'quote':
       return `<blockquote>${children}</blockquote>`
@@ -103,7 +109,7 @@ const renderNode = (node: LexicalNode): string => {
         const media = node.value
         const alt = media.alt || ''
         const pictureHtml = buildPictureElement(media, alt)
-        return `<figure>${pictureHtml}${alt ? `<figcaption>${alt}</figcaption>` : ''}</figure>`
+        return `<figure>${pictureHtml}${alt ? `<figcaption>${escapeAttr(alt)}</figcaption>` : ''}</figure>`
       }
       return ''
     }

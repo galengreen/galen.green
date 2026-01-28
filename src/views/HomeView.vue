@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, watch, inject, type Ref } from 'vue'
+import { computed, onMounted, ref, watch, inject, type Ref } from 'vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
 import AboutSection from '@/components/sections/AboutSection.vue'
 import BlogSection from '@/components/sections/BlogSection.vue'
@@ -7,7 +7,6 @@ import ContactSection from '@/components/sections/ContactSection.vue'
 import HeroSection from '@/components/sections/HeroSection.vue'
 import PhotosSection from '@/components/sections/PhotosSection.vue'
 import ProjectsSection from '@/components/sections/ProjectsSection.vue'
-import { useScrollAnimations } from '@/composables/useScrollAnimation'
 import { useImagePreloader } from '@/composables/useImagePreloader'
 import { getImageUrl } from '@/composables/useMedia'
 import { api } from '@/services/payload'
@@ -15,17 +14,6 @@ import type { About, BlogPost, GitHubStats, Photo, Project, SiteSettings } from 
 
 // Image preloader for idle prefetch
 const { prefetchOnIdle, criticalImagesLoaded } = useImagePreloader()
-
-// Scroll animations
-const { observe, isVisible } = useScrollAnimations({ threshold: 0.1 })
-
-// Section refs for scroll animations
-const heroRef = ref<HTMLElement | null>(null)
-const aboutRef = ref<HTMLElement | null>(null)
-const projectsRef = ref<HTMLElement | null>(null)
-const blogRef = ref<HTMLElement | null>(null)
-const photosRef = ref<HTMLElement | null>(null)
-const contactRef = ref<HTMLElement | null>(null)
 
 // Get site settings from App.vue (already fetched)
 const siteSettings = inject<Ref<SiteSettings | null>>('siteSettings', ref(null))
@@ -65,16 +53,6 @@ const error = ref<string | null>(null)
 
 // Fetch all data
 onMounted(async () => {
-  // Set up scroll animations after DOM is ready
-  nextTick(() => {
-    observe('hero', heroRef.value)
-    observe('about', aboutRef.value)
-    observe('projects', projectsRef.value)
-    observe('blog', blogRef.value)
-    observe('photos', photosRef.value)
-    observe('contact', contactRef.value)
-  })
-
   // Fetch in parallel (excluding siteSettings which comes from App.vue)
   const fetchAll = async () => {
     try {
@@ -158,61 +136,49 @@ watch(criticalImagesLoaded, (loaded) => {
 
 <template>
   <div class="home">
-    <div ref="heroRef">
-      <HeroSection
-        :about="about"
-        :first-name="siteName.first"
-        :last-name="siteName.last"
-        :background-image-light="siteSettings?.heroBackground?.light"
-        :background-image-dark="siteSettings?.heroBackground?.dark"
-        :foreground-image-light="siteSettings?.heroForeground?.light"
-        :foreground-image-dark="siteSettings?.heroForeground?.dark"
-        :visible="isVisible('hero')"
-      />
-    </div>
+    <HeroSection
+      :about="about"
+      :first-name="siteName.first"
+      :last-name="siteName.last"
+      :background-image-light="siteSettings?.heroBackground?.light"
+      :background-image-dark="siteSettings?.heroBackground?.dark"
+      :foreground-image-light="siteSettings?.heroForeground?.light"
+      :foreground-image-dark="siteSettings?.heroForeground?.dark"
+      :visible="true"
+    />
 
     <div class="page-content">
-      <div ref="aboutRef">
-        <AboutSection
-          :title="sectionTitles.about"
-          :about="about"
-          :github-stats="githubStats"
-          :loading-about="loading.about"
-          :loading-github="loading.github"
-          :visible="isVisible('about')"
-        />
-      </div>
+      <AboutSection
+        :title="sectionTitles.about"
+        :about="about"
+        :github-stats="githubStats"
+        :loading-about="loading.about"
+        :loading-github="loading.github"
+        :visible="true"
+      />
 
-      <div ref="projectsRef">
-        <ProjectsSection
-          :title="sectionTitles.projects"
-          :projects="projects"
-          :loading="loading.projects"
-          :visible="isVisible('projects')"
-        />
-      </div>
+      <ProjectsSection
+        :title="sectionTitles.projects"
+        :projects="projects"
+        :loading="loading.projects"
+        :visible="true"
+      />
 
-      <div ref="blogRef">
-        <BlogSection
-          :title="sectionTitles.blog"
-          :posts="blogPosts"
-          :loading="loading.blog"
-          :visible="isVisible('blog')"
-        />
-      </div>
+      <BlogSection
+        :title="sectionTitles.blog"
+        :posts="blogPosts"
+        :loading="loading.blog"
+        :visible="true"
+      />
 
-      <div ref="photosRef">
-        <PhotosSection
-          :title="sectionTitles.photos"
-          :photos="photos"
-          :loading="loading.photos"
-          :visible="isVisible('photos')"
-        />
-      </div>
+      <PhotosSection
+        :title="sectionTitles.photos"
+        :photos="photos"
+        :loading="loading.photos"
+        :visible="true"
+      />
 
-      <div ref="contactRef">
-        <ContactSection :title="sectionTitles.contact" :visible="isVisible('contact')" />
-      </div>
+      <ContactSection :title="sectionTitles.contact" :visible="true" />
 
       <FooterSection :name="siteSettings?.name" :socials="siteSettings?.socials" />
     </div>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { ref, computed, toRef, onUnmounted, watch } from 'vue'
+import { ref, computed, toRef, watch } from 'vue'
+import BaseLightbox from '@/components/ui/BaseLightbox.vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
-import { IconChevronLeft, IconChevronRight, IconClose, IconInfo } from '@/components/icons'
+import { IconChevronLeft, IconChevronRight, IconInfo } from '@/components/icons'
 import { formatDate, getImageUrl, getImageSrcset, getImageSrcsetAvif } from '@/composables/useMedia'
 import { useGalleryNavigation } from '@/composables/useGalleryNavigation'
 import type { Photo } from '@/types'
@@ -52,29 +53,6 @@ const { currentIndex, goToPrevious, goToNext } = useGalleryNavigation({
 const currentPhoto = computed(() => props.photos[currentIndex.value] as Photo)
 const hasMultiple = computed(() => props.photos.length > 1)
 
-function handleBackdropClick(event: MouseEvent) {
-  if (event.target === event.currentTarget) {
-    close()
-  }
-}
-
-// Lock body scroll when lightbox is open
-watch(
-  () => props.open,
-  (isOpen) => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-  },
-  { immediate: true },
-)
-
-onUnmounted(() => {
-  document.body.style.overflow = ''
-})
-
 // Reset to initial index when initialIndex prop changes
 watch(
   () => props.initialIndex,
@@ -85,94 +63,76 @@ watch(
 </script>
 
 <template>
-  <Teleport to="body">
-    <Transition name="scale-fade">
-      <div v-if="open" class="lightbox-overlay" @click="handleBackdropClick">
-        <!-- Close button -->
-        <button class="lightbox-btn lightbox-close" aria-label="Close" @click="close">
-          <IconClose />
-        </button>
+  <BaseLightbox :open="open" skip-keyboard-handling @close="close">
+    <template #buttons>
+      <!-- Previous button -->
+      <button
+        v-if="hasMultiple"
+        class="lightbox-btn lightbox-nav-prev"
+        aria-label="Previous photo"
+        @click="goToPrevious"
+      >
+        <IconChevronLeft />
+      </button>
 
-        <!-- Previous button -->
-        <button
-          v-if="hasMultiple"
-          class="lightbox-btn lightbox-nav-prev"
-          aria-label="Previous photo"
-          @click="goToPrevious"
-        >
-          <IconChevronLeft />
-        </button>
+      <!-- Info toggle button -->
+      <button
+        class="lightbox-btn lightbox-info-toggle"
+        :class="{ active: showInfo }"
+        aria-label="Toggle info"
+        @click="toggleInfo"
+      >
+        <IconInfo />
+      </button>
 
-        <!-- Info toggle button -->
-        <button
-          class="lightbox-btn lightbox-info-toggle"
-          :class="{ active: showInfo }"
-          aria-label="Toggle info"
-          @click="toggleInfo"
-        >
-          <IconInfo />
-        </button>
+      <!-- Next button -->
+      <button
+        v-if="hasMultiple"
+        class="lightbox-btn lightbox-nav-next"
+        aria-label="Next photo"
+        @click="goToNext"
+      >
+        <IconChevronRight />
+      </button>
+    </template>
 
-        <!-- Next button -->
-        <button
-          v-if="hasMultiple"
-          class="lightbox-btn lightbox-nav-next"
-          aria-label="Next photo"
-          @click="goToNext"
-        >
-          <IconChevronRight />
-        </button>
-
-        <!-- Main content area -->
-        <div class="lightbox-content" :class="{ 'info-open': showInfo }">
-          <!-- Image container -->
-          <div class="lightbox-image-container">
-            <!-- Photo -->
-            <div class="lightbox-image-wrapper">
-              <LazyImage
-                :key="currentPhoto.id"
-                :src="getImageUrl(currentPhoto.image, 'xxl')"
-                :srcset="getImageSrcset(currentPhoto.image)"
-                :srcset-avif="getImageSrcsetAvif(currentPhoto.image)"
-                sizes="100vw"
-                :thumbnail-src="getImageUrl(currentPhoto.image, 'md')"
-                :alt="currentPhoto.title"
-                :aspect-ratio="currentPhoto.image.height / currentPhoto.image.width"
-                class="lightbox-image"
-                eager
-              />
-            </div>
-          </div>
-
-          <!-- Info panel -->
-          <Transition name="slide-left">
-            <aside v-if="showInfo" class="lightbox-info">
-              <h3 class="lightbox-title">{{ currentPhoto.title }}</h3>
-              <p v-if="currentPhoto.description" class="lightbox-description">
-                {{ currentPhoto.description }}
-              </p>
-              <time class="lightbox-date">{{ formatDate(currentPhoto.date) }}</time>
-            </aside>
-          </Transition>
+    <!-- Main content area -->
+    <div class="lightbox-content" :class="{ 'info-open': showInfo }">
+      <!-- Image container -->
+      <div class="lightbox-image-container">
+        <!-- Photo -->
+        <div class="lightbox-image-wrapper">
+          <LazyImage
+            :key="currentPhoto.id"
+            :src="getImageUrl(currentPhoto.image, 'xxl')"
+            :srcset="getImageSrcset(currentPhoto.image)"
+            :srcset-avif="getImageSrcsetAvif(currentPhoto.image)"
+            sizes="100vw"
+            :thumbnail-src="getImageUrl(currentPhoto.image, 'md')"
+            :alt="currentPhoto.title"
+            :aspect-ratio="currentPhoto.image.height / currentPhoto.image.width"
+            class="lightbox-image"
+            eager
+          />
         </div>
       </div>
-    </Transition>
-  </Teleport>
+
+      <!-- Info panel -->
+      <Transition name="slide-left">
+        <aside v-if="showInfo" class="lightbox-info">
+          <h3 class="lightbox-title">{{ currentPhoto.title }}</h3>
+          <p v-if="currentPhoto.description" class="lightbox-description">
+            {{ currentPhoto.description }}
+          </p>
+          <time class="lightbox-date">{{ formatDate(currentPhoto.date) }}</time>
+        </aside>
+      </Transition>
+    </div>
+  </BaseLightbox>
 </template>
 
 <style scoped>
-.lightbox-overlay {
-  position: fixed;
-  inset: 0;
-  z-index: var(--z-modal);
-  background: rgba(0, 0, 0, 0.8);
-  backdrop-filter: blur(10px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Top buttons */
+/* Button positioning (base styles come from BaseLightbox) */
 .lightbox-btn {
   position: absolute;
   top: var(--space-6);
@@ -192,8 +152,9 @@ watch(
   z-index: 10;
 }
 
-.lightbox-close {
-  left: var(--space-6);
+.lightbox-btn:hover {
+  color: white;
+  background: rgba(0, 0, 0, 0.9);
 }
 
 .lightbox-info-toggle {
@@ -209,10 +170,6 @@ watch(
 .lightbox-nav-next {
   right: var(--space-6);
   top: 47%;
-}
-
-.lightbox-overlay:hover .lightbox-nav {
-  opacity: 1;
 }
 
 /* Main content */

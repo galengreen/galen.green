@@ -1,9 +1,9 @@
 name: Update GitHub Stats
 
 on:
-  # Run daily at 6am UTC (7pm NZST / 6pm NZDT)
+  # Run every hour
   schedule:
-    - cron: '0 6 * * *'
+    - cron: '0 * * * *'
   # Allow manual trigger from GitHub UI
   workflow_dispatch:
 

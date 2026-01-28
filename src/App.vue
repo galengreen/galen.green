@@ -66,11 +66,11 @@ function getBestImageUrl(media: Media): string {
     if (settings.heroBackground?.dark) {
       heroUrls.push(getBestImageUrl(settings.heroBackground.dark))
     }
-    if (heroUrls.length > 0) {
-      preloadCritical(heroUrls)
-    }
+    // Always call preloadCritical - it handles empty arrays correctly
+    preloadCritical(heroUrls)
   } catch {
-    // Silently fail - we'll show a default message
+    // API failed - mark images as loaded so the page can render
+    preloadCritical([])
   }
 })()
 

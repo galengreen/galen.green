@@ -128,4 +128,51 @@ describe('RichText', () => {
     expect(wrapper.html()).not.toContain('<script>')
     expect(wrapper.html()).toContain('&lt;script&gt;')
   })
+
+  it('sanitises javascript: URLs in links', () => {
+    const content = {
+      root: {
+        children: [
+          {
+            type: 'paragraph',
+            children: [
+              {
+                type: 'link',
+                url: 'javascript:alert("xss")',
+                children: [{ type: 'text', text: 'Click me' }],
+              },
+            ],
+          },
+        ],
+      },
+    }
+    const wrapper = mount(RichText, { props: { content } })
+    expect(wrapper.html()).toContain('href="#"')
+    expect(wrapper.html()).not.toContain('javascript:')
+  })
+
+  it('escapes HTML in image alt text', () => {
+    const content = {
+      root: {
+        children: [
+          {
+            type: 'upload',
+            value: {
+              url: '/media/test.jpg',
+              alt: '"><script>alert("xss")</script>',
+            },
+          },
+        ],
+      },
+    }
+    const wrapper = mount(RichText, { props: { content } })
+    // Check that alt attribute is properly escaped (quotes become &quot;)
+    const img = wrapper.find('img')
+    expect(img.attributes('alt')).toBe('"><script>alert("xss")</script>')
+    // Check that figcaption text content is escaped (no actual script execution)
+    const figcaption = wrapper.find('figcaption')
+    expect(figcaption.text()).toBe('"><script>alert("xss")</script>')
+    // Verify no actual script element was created
+    expect(wrapper.find('script').exists()).toBe(false)
+  })
 })

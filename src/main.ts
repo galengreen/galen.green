@@ -1,8 +1,4 @@
 import { ViteSSG } from 'vite-ssg'
-import { createPinia } from 'pinia'
-import PrimeVue from 'primevue/config'
-import { definePreset } from '@primevue/themes'
-import Aura from '@primevue/themes/aura'
 import VueMatomo from 'vue-matomo'
 
 // Font Awesome
@@ -55,25 +51,6 @@ library.add(
   faExternalLink,
 )
 
-// Custom PrimeVue preset - unstyled base with minimal defaults
-const GalenPreset = definePreset(Aura, {
-  semantic: {
-    primary: {
-      50: '{zinc.50}',
-      100: '{zinc.100}',
-      200: '{zinc.200}',
-      300: '{zinc.300}',
-      400: '{zinc.400}',
-      500: '{zinc.500}',
-      600: '{zinc.600}',
-      700: '{zinc.700}',
-      800: '{zinc.800}',
-      900: '{zinc.900}',
-      950: '{zinc.950}',
-    },
-  },
-})
-
 export const createApp = ViteSSG(
   App,
   {
@@ -106,23 +83,8 @@ export const createApp = ViteSSG(
     },
   },
   ({ app, router, isClient }) => {
-    const pinia = createPinia()
-    app.use(pinia)
-
     // Register Font Awesome component globally
     app.component('FontAwesomeIcon', FontAwesomeIcon)
-
-    app.use(PrimeVue, {
-      theme: {
-        preset: GalenPreset,
-        options: {
-          darkModeSelector: '.dark',
-          cssLayer: false,
-        },
-      },
-      ripple: false,
-      pt: {}, // Pass-through for custom styling
-    })
 
     // Client-only initialisation
     if (isClient) {
