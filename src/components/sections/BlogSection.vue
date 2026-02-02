@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import {
   formatDate,
   getImageUrl,
@@ -7,6 +7,7 @@ import {
   getImageSrcsetAvif,
   imageSizesPresets,
 } from '@/composables/useMedia'
+import { useDeepLink } from '@/composables/useDeepLink'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import SkeletonText from '@/components/ui/SkeletonText.vue'
 import ContentLightbox from '@/components/ui/ContentLightbox.vue'
@@ -21,17 +22,13 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const selectedPostId = ref<string | null>(null)
+const {
+  selectedId: selectedPostId,
+  open: openPost,
+  close: closePost,
+} = useDeepLink('blog', () => props.posts)
 
 const selectedPost = computed(() => props.posts.find((p) => p.id === selectedPostId.value) || null)
-
-const openPost = (id: string) => {
-  selectedPostId.value = id
-}
-
-const closePost = () => {
-  selectedPostId.value = null
-}
 
 const formatDateLong = (dateString: string) => {
   return formatDate(dateString, { longMonth: true })

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import Card from '@/components/ui/CustomCard.vue'
 import LazyImage from '@/components/ui/LazyImage.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
@@ -14,6 +14,7 @@ import {
   getImageSrcsetAvif,
   imageSizesPresets,
 } from '@/composables/useMedia'
+import { useDeepLink } from '@/composables/useDeepLink'
 import type { Project } from '@/types'
 
 const props = defineProps<{
@@ -23,19 +24,15 @@ const props = defineProps<{
   visible: boolean
 }>()
 
-const selectedProjectId = ref<string | null>(null)
+const {
+  selectedId: selectedProjectId,
+  open: openProject,
+  close: closeProject,
+} = useDeepLink('projects', () => props.projects)
 
 const selectedProject = computed(
   () => props.projects.find((p) => p.id === selectedProjectId.value) || null,
 )
-
-const openProject = (id: string) => {
-  selectedProjectId.value = id
-}
-
-const closeProject = () => {
-  selectedProjectId.value = null
-}
 </script>
 
 <template>
