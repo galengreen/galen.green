@@ -9,6 +9,7 @@ import PhotosSection from '@/components/sections/PhotosSection.vue'
 import ProjectsSection from '@/components/sections/ProjectsSection.vue'
 import { useImagePreloader } from '@/composables/useImagePreloader'
 import { getImageUrl } from '@/composables/useMedia'
+import { useSeo, toAbsoluteUrl } from '@/composables/useSeo'
 import { api } from '@/services/payload'
 import type { About, BlogPost, GitHubStats, Photo, Project, SiteSettings } from '@/types'
 
@@ -47,6 +48,26 @@ const sectionTitles = computed(() => ({
   photos: siteSettings.value?.sectionTitles?.photos || '',
   contact: siteSettings.value?.sectionTitles?.contact || '',
 }))
+
+// SEO — dynamically set meta tags and Person JSON-LD from CMS data
+// Use dedicated OG image if set, otherwise fall back to profile photo
+const ogImageUrl = computed(() => {
+  const seoImage = siteSettings.value?.seo?.ogImage
+  if (seoImage) {
+    return toAbsoluteUrl(getImageUrl(seoImage, 'lg'))
+  }
+  return toAbsoluteUrl(getImageUrl(about.value?.photo, 'lg'))
+})
+const personImageUrl = computed(() => toAbsoluteUrl(getImageUrl(about.value?.photo, 'lg')))
+
+useSeo({
+  description: computed(() => siteSettings.value?.seo?.description),
+  ogImage: ogImageUrl,
+  ogType: 'profile',
+  socials: computed(() => siteSettings.value?.socials),
+  personImage: personImageUrl,
+  jobTitle: computed(() => siteSettings.value?.seo?.jobTitle),
+})
 
 // Error state
 const error = ref<string | null>(null)

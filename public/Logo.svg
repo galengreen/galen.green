@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg width="100%" height="100%" viewBox="0 0 349 397" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xml:space="preserve" xmlns:serif="http://www.serif.com/" style="fill-rule:evenodd;clip-rule:evenodd;stroke-linejoin:round;stroke-miterlimit:2;">
+    <g id="_0" serif:id="0" transform="matrix(1,0,0,1,176.297693,198.41636)">
+        <g>
+            <g id="LWPOLYLINE" transform="matrix(-1.083384,-0,0,-1.083384,-2,0)">
+                <path d="M155.906,90.012L155.906,-90.012L0,-180.024L-155.906,-90.012L-155.906,90.012L-0,180.024L155.906,90.012Z" style="fill:white;"/>
+            </g>
+            <g id="LWPOLYLINE1" serif:id="LWPOLYLINE" transform="matrix(-1.083384,-0,0,-1.083384,-2,0)">
+                <path d="M70.866,-40.915L70.866,-8.183L14.173,24.549L14.173,-139.11L127.559,-73.646L127.559,73.646L14.173,139.11L14.173,73.646L42.52,57.28L42.52,90.012L99.213,57.28L99.213,-57.28L42.52,-90.012L42.52,-24.549L70.866,-40.915Z"/>
+            </g>
+            <g id="LWPOLYLINE2" serif:id="LWPOLYLINE" transform="matrix(-1.083384,-0,0,-1.083384,-2,0)">
+                <path d="M-99.213,40.915L-99.213,57.28L-42.52,90.012L-42.52,-90.012L-99.213,-57.28L-99.213,-40.915L-70.866,-24.549L-70.866,8.183L-127.559,-24.549L-127.559,-73.646L-14.173,-139.11L-14.173,139.11L-127.559,73.646L-127.559,24.549L-99.213,40.915Z"/>
+            </g>
+        </g>
+    </g>
+</svg>

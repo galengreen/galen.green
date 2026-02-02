@@ -130,6 +130,11 @@ export interface SiteSettings {
     dark?: Media
   }
   socials: SocialLink[]
+  seo?: {
+    description?: string
+    jobTitle?: string
+    ogImage?: Media
+  }
   sectionTitles: {
     about: string
     projects: string

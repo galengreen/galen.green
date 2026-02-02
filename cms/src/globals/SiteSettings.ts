@@ -164,6 +164,47 @@ export const SiteSettings: GlobalConfig = {
           ],
         },
         {
+          label: 'SEO',
+          fields: [
+            {
+              name: 'seo',
+              type: 'group',
+              admin: {
+                description:
+                  'Search engine optimisation settings. These control how the site appears in Google and social media.',
+              },
+              fields: [
+                {
+                  name: 'description',
+                  type: 'textarea',
+                  admin: {
+                    description:
+                      'Meta description shown in Google search results and social media previews. Aim for 150–300 characters. Google displays ~155 characters but indexes the full text for ranking.',
+                  },
+                },
+                {
+                  name: 'jobTitle',
+                  type: 'text',
+                  admin: {
+                    description:
+                      'Your job title for structured data (e.g., "Software Engineer"). Used in the Person schema for Google Knowledge Panel.',
+                    placeholder: 'e.g., Software Engineer',
+                  },
+                },
+                {
+                  name: 'ogImage',
+                  type: 'upload',
+                  relationTo: 'media',
+                  admin: {
+                    description:
+                      'Image shown in Google search results and when sharing on social media. Recommended size: 1200×630px. Falls back to your profile photo if not set.',
+                  },
+                },
+              ],
+            },
+          ],
+        },
+        {
           label: 'Section Titles',
           fields: [
             {
