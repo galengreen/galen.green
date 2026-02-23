@@ -1,23 +1,17 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import LazyImage from '@/components/ui/LazyImage.vue'
+import SectionShell from '@/components/sections/SectionShell.vue'
+import ResponsiveImage from '@/components/ui/ResponsiveImage.vue'
 import MasonryGrid from '@/components/ui/MasonryGrid.vue'
 import PhotoLightbox from '@/components/ui/PhotoLightbox.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import SkeletonBox from '@/components/ui/SkeletonBox.vue'
-import {
-  getImageUrl,
-  getImageSrcset,
-  getImageSrcsetAvif,
-  imageSizesPresets,
-} from '@/composables/useMedia'
 import type { Photo } from '@/types'
 
 const props = defineProps<{
   title: string
   photos: Photo[]
   loading: boolean
-  visible: boolean
 }>()
 
 const showLightbox = ref(false)
@@ -41,50 +35,45 @@ const photosWithDimensions = computed(() => {
 </script>
 
 <template>
-  <section id="photos" class="section fade-in" :class="{ visible }">
-    <div class="container">
-      <h2 class="section-title">{{ title }}</h2>
-
-      <div v-if="loading" class="photos-grid-loading">
-        <div v-for="i in 6" :key="i" class="photo-item">
-          <SkeletonBox :aspect-ratio="3 / 4" rounded="sm" />
-        </div>
+  <SectionShell id="photos" :title="title">
+    <div v-if="loading" class="photos-grid-loading">
+      <div v-for="i in 6" :key="i" class="photo-item">
+        <SkeletonBox :aspect-ratio="3 / 4" rounded="sm" />
       </div>
-
-      <MasonryGrid
-        v-else-if="photos.length"
-        :photos="photosWithDimensions"
-        :column-count="3"
-        :gap="16"
-        @photo-click="openPhoto"
-      >
-        <template #item="{ photo, aspectRatio }">
-          <div class="photo-item">
-            <LazyImage
-              :src="getImageUrl(photo.image, 'md')"
-              :srcset="getImageSrcset(photo.image)"
-              :srcset-avif="getImageSrcsetAvif(photo.image)"
-              :sizes="imageSizesPresets.photoGrid"
-              :thumbnail-src="getImageUrl(photo.image, 'xs')"
-              :alt="photo.title"
-              :aspect-ratio="aspectRatio"
-              class="photo-image"
-            />
-          </div>
-        </template>
-      </MasonryGrid>
-
-      <EmptyState v-else message="Photos coming soon..." />
-
-      <!-- Fullscreen lightbox -->
-      <PhotoLightbox
-        :photos="photos"
-        :initial-index="lightboxIndex"
-        :open="showLightbox"
-        @close="showLightbox = false"
-      />
     </div>
-  </section>
+
+    <MasonryGrid
+      v-else-if="photos.length"
+      :photos="photosWithDimensions"
+      :column-count="3"
+      :gap="16"
+      @photo-click="openPhoto"
+    >
+      <template #item="{ photo, aspectRatio }">
+        <div class="photo-item">
+          <ResponsiveImage
+            :media="photo.image"
+            :alt="photo.title"
+            size="md"
+            sizes-preset="photoGrid"
+            thumbnail-size="xs"
+            :aspect-ratio="aspectRatio"
+            class="photo-image"
+          />
+        </div>
+      </template>
+    </MasonryGrid>
+
+    <EmptyState v-else message="Photos coming soon..." />
+
+    <!-- Fullscreen lightbox -->
+    <PhotoLightbox
+      :photos="photos"
+      :initial-index="lightboxIndex"
+      :open="showLightbox"
+      @close="showLightbox = false"
+    />
+  </SectionShell>
 </template>
 
 <style scoped>

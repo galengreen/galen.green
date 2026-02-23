@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { ref, computed, toRef, watch } from 'vue'
 import BaseLightbox from '@/components/ui/BaseLightbox.vue'
-import LazyImage from '@/components/ui/LazyImage.vue'
+import ResponsiveImage from '@/components/ui/ResponsiveImage.vue'
 import { IconChevronLeft, IconChevronRight, IconInfo } from '@/components/icons'
-import { formatDate, getImageUrl, getImageSrcset, getImageSrcsetAvif } from '@/composables/useMedia'
+import { formatDate } from '@/composables/useMedia'
 import { useGalleryNavigation } from '@/composables/useGalleryNavigation'
 import type { Photo } from '@/types'
 
@@ -102,15 +102,13 @@ watch(
       <div class="lightbox-image-container">
         <!-- Photo -->
         <div class="lightbox-image-wrapper">
-          <LazyImage
+          <ResponsiveImage
             :key="currentPhoto.id"
-            :src="getImageUrl(currentPhoto.image, 'xxl')"
-            :srcset="getImageSrcset(currentPhoto.image)"
-            :srcset-avif="getImageSrcsetAvif(currentPhoto.image)"
-            sizes="100vw"
-            :thumbnail-src="getImageUrl(currentPhoto.image, 'md')"
+            :media="currentPhoto.image"
             :alt="currentPhoto.title"
-            :aspect-ratio="currentPhoto.image.height / currentPhoto.image.width"
+            size="xxl"
+            sizes="100vw"
+            thumbnail-size="md"
             class="lightbox-image"
             eager
           />

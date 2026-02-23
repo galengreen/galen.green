@@ -1,14 +1,11 @@
 <script setup lang="ts">
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue'
-import {
-  getImageUrl,
-  getImageSrcset,
-  getImageSrcsetAvif,
-  imageSizesPresets,
-} from '@/composables/useMedia'
+import { getImageUrl, imageSizesPresets } from '@/composables/useMedia'
 import { useTheme } from '@/composables/useTheme'
 import { useImagePreloader } from '@/composables/useImagePreloader'
-import type { About, Media, ImageSizeName } from '@/types'
+import type { About, Media } from '@/types'
+import PictureImage from '@/components/ui/PictureImage.vue'
+import ResponsiveImage from '@/components/ui/ResponsiveImage.vue'
 
 const props = defineProps<{
   about: About | null
@@ -18,38 +15,22 @@ const props = defineProps<{
   backgroundImageDark?: Media
   foregroundImageLight?: Media
   foregroundImageDark?: Media
-  visible: boolean
 }>()
 
 const { isDark } = useTheme()
 const { preloadCritical } = useImagePreloader()
 
-// Helper to generate image data for a Media object
-function getImageData(media: Media | undefined, size: ImageSizeName = 'xl') {
-  if (!media) return null
-  return {
-    url: getImageUrl(media, size),
-    srcset: getImageSrcset(media),
-    srcsetAvif: getImageSrcsetAvif(media),
-  }
-}
-
 const hasBackground = computed(() => props.backgroundImageLight || props.backgroundImageDark)
 
-// Computed image data for all layers
-const backgroundLight = computed(() => getImageData(props.backgroundImageLight))
-const backgroundDark = computed(() => getImageData(props.backgroundImageDark))
-const foregroundLight = computed(() => getImageData(props.foregroundImageLight))
-const foregroundDark = computed(() => getImageData(props.foregroundImageDark))
-const portrait = computed(() => getImageData(props.about?.photo, 'lg'))
+const portraitMedia = computed(() => props.about?.photo)
 
 // Preload portrait image when about data arrives
 // (hero backgrounds are preloaded in App.vue)
 watch(
-  portrait,
-  (data) => {
-    if (data?.url) {
-      preloadCritical([data.url])
+  portraitMedia,
+  (media) => {
+    if (media) {
+      preloadCritical([getImageUrl(media, 'lg')])
     }
   },
   { immediate: true },
@@ -105,95 +86,74 @@ const foregroundParallaxStyle = computed(() => ({
 <template>
   <section
     id="hero"
-    class="hero-section fade-in"
-    :class="{ visible, 'has-background': hasBackground }"
+    class="hero-section fade-in visible"
+    :class="{ 'has-background': hasBackground }"
   >
     <!-- Background layer (slowest parallax) -->
-    <picture
-      v-if="backgroundLight"
+    <PictureImage
+      v-if="backgroundImageLight"
+      :media="backgroundImageLight"
+      size="xl"
+      :sizes="imageSizesPresets.hero"
+      alt=""
       class="hero-layer hero-layer--background"
       :class="{ active: !isDark }"
-    >
-      <source
-        :srcset="backgroundLight.srcsetAvif"
-        :sizes="imageSizesPresets.hero"
-        type="image/avif"
-      />
-      <source :srcset="backgroundLight.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
-      <img
-        :src="backgroundLight.url"
-        alt=""
-        aria-hidden="true"
-        :style="backgroundParallaxStyle"
-        fetchpriority="high"
-      />
-    </picture>
+      fetchpriority="high"
+      :img-style="backgroundParallaxStyle"
+      aria-hidden
+    />
 
-    <picture
-      v-if="backgroundDark"
+    <PictureImage
+      v-if="backgroundImageDark"
+      :media="backgroundImageDark"
+      size="xl"
+      :sizes="imageSizesPresets.hero"
+      alt=""
       class="hero-layer hero-layer--background"
       :class="{ active: isDark }"
-    >
-      <source
-        :srcset="backgroundDark.srcsetAvif"
-        :sizes="imageSizesPresets.hero"
-        type="image/avif"
-      />
-      <source :srcset="backgroundDark.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
-      <img
-        :src="backgroundDark.url"
-        alt=""
-        aria-hidden="true"
-        :style="backgroundParallaxStyle"
-        fetchpriority="high"
-      />
-    </picture>
+      fetchpriority="high"
+      :img-style="backgroundParallaxStyle"
+      aria-hidden
+    />
 
     <!-- Foreground layer (faster parallax) -->
-    <picture
-      v-if="foregroundLight"
+    <PictureImage
+      v-if="foregroundImageLight"
+      :media="foregroundImageLight"
+      size="xl"
+      :sizes="imageSizesPresets.hero"
+      alt=""
       class="hero-layer hero-layer--foreground"
       :class="{ active: !isDark }"
-    >
-      <source
-        :srcset="foregroundLight.srcsetAvif"
-        :sizes="imageSizesPresets.hero"
-        type="image/avif"
-      />
-      <source :srcset="foregroundLight.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
-      <img :src="foregroundLight.url" alt="" aria-hidden="true" :style="foregroundParallaxStyle" />
-    </picture>
+      :img-style="foregroundParallaxStyle"
+      aria-hidden
+    />
 
-    <picture
-      v-if="foregroundDark"
+    <PictureImage
+      v-if="foregroundImageDark"
+      :media="foregroundImageDark"
+      size="xl"
+      :sizes="imageSizesPresets.hero"
+      alt=""
       class="hero-layer hero-layer--foreground"
       :class="{ active: isDark }"
-    >
-      <source
-        :srcset="foregroundDark.srcsetAvif"
-        :sizes="imageSizesPresets.hero"
-        type="image/avif"
-      />
-      <source :srcset="foregroundDark.srcset" :sizes="imageSizesPresets.hero" type="image/webp" />
-      <img :src="foregroundDark.url" alt="" aria-hidden="true" :style="foregroundParallaxStyle" />
-    </picture>
+      :img-style="foregroundParallaxStyle"
+      aria-hidden
+    />
 
     <div class="hero-content container">
       <div class="hero-image">
-        <picture v-if="portrait">
-          <source
-            :srcset="portrait.srcsetAvif"
-            :sizes="imageSizesPresets.avatar"
-            type="image/avif"
-          />
-          <source :srcset="portrait.srcset" :sizes="imageSizesPresets.avatar" type="image/webp" />
-          <img
-            :src="portrait.url || ''"
-            :alt="about?.photo?.alt || 'Profile photo'"
-            class="hero-photo"
-            fetchpriority="high"
-          />
-        </picture>
+        <ResponsiveImage
+          v-if="portraitMedia"
+          :media="portraitMedia"
+          size="lg"
+          sizes-preset="avatar"
+          :alt="about?.photo?.alt || 'Profile photo'"
+          class="hero-photo"
+          :aspect-ratio="1"
+          eager
+          fetchpriority="high"
+        />
         <div v-else class="hero-image-placeholder"></div>
       </div>
       <div class="hero-text">
@@ -233,7 +193,7 @@ const foregroundParallaxStyle = computed(() => ({
   opacity: 0;
 }
 
-.hero-layer img {
+.hero-layer :deep(img) {
   width: 100%;
   min-height: 100%;
   object-fit: cover;
@@ -268,13 +228,25 @@ const foregroundParallaxStyle = computed(() => ({
   padding: 0 var(--space-6);
 }
 
-.hero-photo {
+:deep(.hero-photo.lazy-image-container) {
   max-width: 400px;
   width: 100%;
   aspect-ratio: 1/1;
-  object-fit: cover;
   border-radius: 50%;
+  overflow: hidden;
+  background: transparent;
   box-shadow: var(--shadow-md);
+}
+
+:deep(.hero-photo .aspect-placeholder) {
+  border-radius: 50%;
+  background: transparent;
+}
+
+:deep(.hero-photo .image-main),
+:deep(.hero-photo .image-blur),
+:deep(.hero-photo .image-shimmer) {
+  border-radius: 50%;
 }
 
 .hero-image-placeholder {
@@ -334,7 +306,7 @@ const foregroundParallaxStyle = computed(() => ({
     gap: var(--space-8);
   }
 
-  .hero-photo,
+  :deep(.hero-photo.lazy-image-container),
   .hero-image-placeholder {
     margin: 0 auto;
     max-width: 280px;
@@ -354,7 +326,7 @@ const foregroundParallaxStyle = computed(() => ({
     font-size: var(--text-lg);
   }
 
-  .hero-photo,
+  :deep(.hero-photo.lazy-image-container),
   .hero-image-placeholder {
     max-width: 220px;
   }
