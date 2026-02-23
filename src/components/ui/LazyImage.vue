@@ -128,7 +128,6 @@ onUnmounted(() => {
     />
 
     <!-- Shimmer placeholder when no thumbnail -->
-    <div v-else-if="!isLoaded && !thumbnailSrc" class="image-shimmer"></div>
     <div v-else-if="!isLoaded" class="image-shimmer"></div>
 
     <!-- Main image with <picture> for AVIF/WebP (only loads when in view) -->

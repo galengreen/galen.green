@@ -1,19 +1,15 @@
 <script setup lang="ts">
 import { computed } from 'vue'
+import SectionShell from '@/components/sections/SectionShell.vue'
 import Card from '@/components/ui/CustomCard.vue'
-import LazyImage from '@/components/ui/LazyImage.vue'
+import ResponsiveImage from '@/components/ui/ResponsiveImage.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import SkeletonText from '@/components/ui/SkeletonText.vue'
 import SkeletonBox from '@/components/ui/SkeletonBox.vue'
 import ContentLightbox from '@/components/ui/ContentLightbox.vue'
+import LightboxContent from '@/components/ui/LightboxContent.vue'
 import ProjectGallery from '@/components/ui/ProjectGallery.vue'
 import RichText from '@/components/ui/RichText.vue'
-import {
-  getImageUrl,
-  getImageSrcset,
-  getImageSrcsetAvif,
-  imageSizesPresets,
-} from '@/composables/useMedia'
 import { useDeepLink } from '@/composables/useDeepLink'
 import type { Project } from '@/types'
 
@@ -21,7 +17,6 @@ const props = defineProps<{
   title: string
   projects: Project[]
   loading: boolean
-  visible: boolean
 }>()
 
 const {
@@ -36,115 +31,103 @@ const selectedProject = computed(
 </script>
 
 <template>
-  <section id="projects" class="section fade-in" :class="{ visible }">
-    <div class="container">
-      <h2 class="section-title">{{ title }}</h2>
+  <SectionShell id="projects" :title="title">
+    <div v-if="loading" class="projects-grid">
+      <Card v-for="i in 4" :key="i" padding="none" :opacity="80" :blur="12" class="project-card">
+        <SkeletonBox :aspect-ratio="9 / 16" />
+        <div class="project-info">
+          <SkeletonText :lines="2" short-last />
+        </div>
+      </Card>
+    </div>
 
-      <div v-if="loading" class="projects-grid">
-        <Card v-for="i in 4" :key="i" padding="none" :opacity="80" :blur="12" class="project-card">
-          <SkeletonBox :aspect-ratio="9 / 16" />
+    <div v-else-if="projects.length" class="projects-grid">
+      <Card
+        v-for="project in projects"
+        :key="project.id"
+        padding="none"
+        :opacity="80"
+        :blur="12"
+        class="project-card"
+      >
+        <button class="project-link" @click="openProject(project.id)">
+          <ResponsiveImage
+            v-if="project.images?.[0]?.image"
+            :media="project.images[0].image"
+            :alt="project.title"
+            size="md"
+            sizes-preset="card"
+            thumbnail-size="xs"
+            class="project-thumbnail"
+          />
+          <div v-else class="project-thumbnail placeholder"></div>
           <div class="project-info">
-            <SkeletonText :lines="2" short-last />
-          </div>
-        </Card>
-      </div>
-
-      <div v-else-if="projects.length" class="projects-grid">
-        <Card
-          v-for="project in projects"
-          :key="project.id"
-          padding="none"
-          :opacity="80"
-          :blur="12"
-          class="project-card"
-        >
-          <button class="project-link" @click="openProject(project.id)">
-            <LazyImage
-              v-if="project.images?.[0]?.image"
-              :src="getImageUrl(project.images[0].image, 'md')"
-              :srcset="getImageSrcset(project.images[0].image)"
-              :srcset-avif="getImageSrcsetAvif(project.images[0].image)"
-              :sizes="imageSizesPresets.card"
-              :thumbnail-src="getImageUrl(project.images[0].image, 'xs')"
-              :alt="project.title"
-              :aspect-ratio="project.images[0].image.height / project.images[0].image.width"
-              class="project-thumbnail"
-            />
-            <div v-else class="project-thumbnail placeholder"></div>
-            <div class="project-info">
-              <h3>{{ project.title }}</h3>
-              <p>{{ project.excerpt }}</p>
-              <div class="project-tags">
-                <span v-for="tech in project.techStack" :key="tech.tech" class="tag">
-                  {{ tech.tech }}
-                </span>
-              </div>
-            </div>
-          </button>
-        </Card>
-      </div>
-
-      <EmptyState v-else message="Projects coming soon..." />
-
-      <!-- Project Lightbox -->
-      <ContentLightbox :open="!!selectedProject" @close="closeProject">
-        <template v-if="selectedProject">
-          <!-- Gallery -->
-          <div v-if="selectedProject.images?.length" class="lightbox-gallery">
-            <ProjectGallery
-              :images="selectedProject.images"
-              :project-title="selectedProject.title"
-            />
-          </div>
-
-          <!-- Content -->
-          <div class="lightbox-content">
-            <div class="lightbox-header">
-              <h2 class="lightbox-title">{{ selectedProject.title }}</h2>
-              <div
-                v-if="selectedProject.githubUrl || selectedProject.liveUrl"
-                class="lightbox-links"
-              >
-                <a
-                  v-if="selectedProject.githubUrl"
-                  :href="selectedProject.githubUrl"
-                  target="_blank"
-                  rel="noopener"
-                  class="lightbox-link"
-                >
-                  <FontAwesomeIcon :icon="['fab', 'github']" />
-                  <span>GitHub</span>
-                </a>
-                <a
-                  v-if="selectedProject.liveUrl"
-                  :href="selectedProject.liveUrl"
-                  target="_blank"
-                  rel="noopener"
-                  class="lightbox-link"
-                >
-                  <FontAwesomeIcon :icon="['fas', 'external-link']" />
-                  <span>Live Site</span>
-                </a>
-              </div>
-            </div>
-
-            <div v-if="selectedProject.techStack?.length" class="lightbox-tags">
-              <span v-for="tech in selectedProject.techStack" :key="tech.tech" class="tag">
+            <h3>{{ project.title }}</h3>
+            <p>{{ project.excerpt }}</p>
+            <div class="project-tags">
+              <span v-for="tech in project.techStack" :key="tech.tech" class="tag">
                 {{ tech.tech }}
               </span>
             </div>
+          </div>
+        </button>
+      </Card>
+    </div>
 
-            <div class="lightbox-description">
-              <p v-if="selectedProject.excerpt" class="lightbox-excerpt">
-                {{ selectedProject.excerpt }}
-              </p>
-              <RichText v-if="selectedProject.description" :content="selectedProject.description" />
+    <EmptyState v-else message="Projects coming soon..." />
+
+    <!-- Project Lightbox -->
+    <ContentLightbox :open="!!selectedProject" @close="closeProject">
+      <template v-if="selectedProject">
+        <!-- Gallery -->
+        <div v-if="selectedProject.images?.length" class="lightbox-gallery">
+          <ProjectGallery :images="selectedProject.images" :project-title="selectedProject.title" />
+        </div>
+
+        <!-- Content -->
+        <LightboxContent>
+          <div class="lightbox-header">
+            <h2 class="lightbox-title">{{ selectedProject.title }}</h2>
+            <div v-if="selectedProject.githubUrl || selectedProject.liveUrl" class="lightbox-links">
+              <a
+                v-if="selectedProject.githubUrl"
+                :href="selectedProject.githubUrl"
+                target="_blank"
+                rel="noopener"
+                class="lightbox-link"
+              >
+                <FontAwesomeIcon :icon="['fab', 'github']" />
+                <span>GitHub</span>
+              </a>
+              <a
+                v-if="selectedProject.liveUrl"
+                :href="selectedProject.liveUrl"
+                target="_blank"
+                rel="noopener"
+                class="lightbox-link"
+              >
+                <FontAwesomeIcon :icon="['fas', 'external-link']" />
+                <span>Live Site</span>
+              </a>
             </div>
           </div>
-        </template>
-      </ContentLightbox>
-    </div>
-  </section>
+
+          <div v-if="selectedProject.techStack?.length" class="lightbox-tags">
+            <span v-for="tech in selectedProject.techStack" :key="tech.tech" class="tag">
+              {{ tech.tech }}
+            </span>
+          </div>
+
+          <div class="lightbox-description">
+            <p v-if="selectedProject.excerpt" class="lightbox-excerpt">
+              {{ selectedProject.excerpt }}
+            </p>
+            <RichText v-if="selectedProject.description" :content="selectedProject.description" />
+          </div>
+        </LightboxContent>
+      </template>
+    </ContentLightbox>
+  </SectionShell>
 </template>
 
 <style scoped>
@@ -220,10 +203,6 @@ const selectedProject = computed(
   padding: var(--space-3);
 }
 
-.lightbox-content {
-  padding: var(--space-6);
-}
-
 .lightbox-header {
   display: flex;
   align-items: flex-start;
@@ -283,10 +262,6 @@ const selectedProject = computed(
   .projects-grid {
     grid-template-columns: 1fr;
     gap: var(--space-4);
-  }
-
-  .lightbox-content {
-    padding: var(--space-4);
   }
 
   .lightbox-title {

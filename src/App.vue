@@ -25,6 +25,10 @@ const showLoading = computed(() => !criticalImagesLoaded.value)
  * Matches the browser's srcset selection logic
  */
 function getBestImageUrl(media: Media): string {
+  if (typeof window === 'undefined') {
+    return getImageUrl(media, 'xl')
+  }
+
   const width = window.innerWidth
   const dpr = window.devicePixelRatio || 1
   const targetWidth = width * dpr
@@ -76,7 +80,6 @@ function getBestImageUrl(media: Media): string {
 
 // Provide site settings and preloader state to child components
 provide('siteSettings', siteSettings)
-provide('imagePreloader', useImagePreloader())
 </script>
 
 <template>
