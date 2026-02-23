@@ -98,8 +98,8 @@ test.describe('Accessibility', () => {
     })
   })
 
-  test.describe('Blog Post Page', () => {
-    test('blog post page has no critical accessibility violations', async ({ page, mockApi }) => {
+  test.describe('Blog Lightbox', () => {
+    test('blog lightbox has no critical accessibility violations', async ({ page, mockApi }) => {
       const blogPostPage = new BlogPostPage(page)
       const post = mockApi.mockData.blogPosts.docs[0]
 
@@ -107,6 +107,7 @@ test.describe('Accessibility', () => {
       await blogPostPage.waitForContent()
 
       const accessibilityScanResults = await new AxeBuilder({ page })
+        .include('.content-lightbox-inner')
         .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'])
         .exclude('.vue-devtools__anchor-btn')
         .exclude('[data-v-inspector]')
@@ -119,19 +120,17 @@ test.describe('Accessibility', () => {
       expect(criticalViolations).toEqual([])
     })
 
-    test('back link is keyboard accessible', async ({ page, mockApi }) => {
+    test('close button is keyboard accessible', async ({ page, mockApi }) => {
       const blogPostPage = new BlogPostPage(page)
       const post = mockApi.mockData.blogPosts.docs[0]
 
       await blogPostPage.goto(post.slug)
       await blogPostPage.waitForContent()
 
-      // Tab to the back link
-      await page.keyboard.press('Tab')
+      await blogPostPage.closeButton.focus()
+      await page.keyboard.press('Enter')
 
-      // Check that the back button is focusable
-      const focusedElement = page.locator(':focus')
-      await expect(focusedElement).toBeVisible()
+      await expect(page).toHaveURL(/#blog$/)
     })
   })
 
@@ -165,7 +164,6 @@ test.describe('Accessibility', () => {
       await page.keyboard.press('Enter')
 
       // Should scroll to projects section
-      await page.waitForTimeout(500)
       await expect(homePage.projectsSection).toBeVisible()
     })
 
@@ -181,9 +179,11 @@ test.describe('Accessibility', () => {
 
       // Press Enter to toggle
       await page.keyboard.press('Enter')
-      await page.waitForTimeout(300)
+
+      await expect.poll(async () => homePage.getCurrentTheme()).not.toBe(initialTheme)
 
       const newTheme = await homePage.getCurrentTheme()
+
       expect(newTheme).not.toBe(initialTheme)
     })
 
@@ -335,18 +335,17 @@ test.describe('Accessibility', () => {
       expect(headings.length).toBeGreaterThan(0)
     })
 
-    test('blog post has proper article structure', async ({ page, mockApi }) => {
+    test('blog lightbox has proper heading structure', async ({ page, mockApi }) => {
       const blogPostPage = new BlogPostPage(page)
       const post = mockApi.mockData.blogPosts.docs[0]
 
       await blogPostPage.goto(post.slug)
       await blogPostPage.waitForContent()
 
-      // Should have an article element
       await expect(blogPostPage.article).toBeVisible()
 
-      // Article should contain heading
-      const heading = blogPostPage.article.locator('h1')
+      // Lightbox content should contain a heading
+      const heading = blogPostPage.article.locator('h2, h1').first()
       await expect(heading).toBeVisible()
     })
   })

@@ -62,6 +62,15 @@ function handleResize() {
   columns.value = getColumnCount()
 }
 
+function selectPhoto(id: string) {
+  emit('photoClick', id)
+}
+
+function getItemAriaLabel(photo: T): string {
+  const candidate = (photo as { title?: string }).title
+  return candidate ? `Open ${candidate}` : 'Open item'
+}
+
 onMounted(() => {
   window.addEventListener('resize', handleResize)
 })
@@ -83,7 +92,12 @@ onUnmounted(() => {
         v-for="photo in col"
         :key="photo.id"
         class="masonry__item"
-        @click="emit('photoClick', photo.id)"
+        role="button"
+        tabindex="0"
+        :aria-label="getItemAriaLabel(photo)"
+        @click="selectPhoto(photo.id)"
+        @keydown.enter.prevent="selectPhoto(photo.id)"
+        @keydown.space.prevent="selectPhoto(photo.id)"
       >
         <slot name="item" :photo="photo" :aspect-ratio="getAspectRatio(photo)">
           <div

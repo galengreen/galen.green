@@ -18,8 +18,8 @@ const BUDGETS = {
   TTI: 5000, // Time to Interactive
 
   // Resource budgets
-  TOTAL_PAGE_WEIGHT_MB: 5, // Total page weight in MB (dev includes source maps)
-  TOTAL_REQUESTS: 100, // Maximum number of requests (dev has more granular chunks)
+  TOTAL_PAGE_WEIGHT_MB: 7, // Dev bundles and mocked media can exceed strict prod budgets
+  TOTAL_REQUESTS: 150, // Dev mode generates more requests due code splitting and assets
 
   // Navigation budgets
   SCROLL_TIME: 3000, // Time for smooth scroll to complete

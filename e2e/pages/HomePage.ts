@@ -48,6 +48,14 @@ export class HomePage extends BasePage {
     await this.page.waitForLoadState('networkidle')
     // Wait for hero section to be visible
     await this.heroSection.waitFor({ state: 'visible' })
+
+    // Ensure loading overlay is gone before interacting with sections
+    await this.page
+      .locator('.loading-screen')
+      .waitFor({ state: 'hidden', timeout: 5000 })
+      .catch(() => {
+        // Overlay may not render in very fast test runs
+      })
   }
 
   // ==================== Hero Section ====================
@@ -135,7 +143,7 @@ export class HomePage extends BasePage {
    * Get all blog post cards/links
    */
   getBlogPostLinks(): Locator {
-    return this.blogSection.locator('.blog-card, .blog-post-link, a[href*="/blog/"]')
+    return this.blogSection.locator('.blog-item, .blog-title')
   }
 
   /**
@@ -231,6 +239,5 @@ export class HomePage extends BasePage {
     }[section]
 
     await sectionLocator.scrollIntoViewIfNeeded()
-    await this.page.waitForTimeout(300) // Wait for scroll animation
   }
 }

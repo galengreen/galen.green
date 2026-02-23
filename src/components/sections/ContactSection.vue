@@ -96,6 +96,10 @@ const submitContact = async () => {
 </template>
 
 <style scoped>
+#contact {
+  background-color: var(--color-background);
+}
+
 .contact-form {
   display: flex;
   flex-direction: column;

@@ -78,8 +78,9 @@ export const projects = {
   },
 
   async getBySlug(slug: string): Promise<Project | null> {
+    const encodedSlug = encodeURIComponent(slug)
     const response = await fetchAPI<PaginatedResponse<Project>>(
-      `/projects?where[slug][equals]=${slug}&depth=2`,
+      `/projects?where[slug][equals]=${encodedSlug}&depth=2`,
     )
     return response.docs[0] || null
   },
@@ -104,8 +105,9 @@ export const blogPosts = {
   },
 
   async getBySlug(slug: string): Promise<BlogPost | null> {
+    const encodedSlug = encodeURIComponent(slug)
     const response = await fetchAPI<PaginatedResponse<BlogPost>>(
-      `/blog-posts?where[slug][equals]=${slug}&where[published][equals]=true&depth=1`,
+      `/blog-posts?where[slug][equals]=${encodedSlug}&where[published][equals]=true&depth=1`,
     )
     return response.docs[0] || null
   },

@@ -2,9 +2,17 @@ name: E2E Tests
 
 on:
   push:
-    branches: [main, master]
-  pull_request:
-    branches: [main, master]
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+
+concurrency:
+  group: e2e-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -22,6 +30,12 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
       - name: Install dependencies
         run: npm ci
 
@@ -29,7 +43,7 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Build application
-        run: npm run build
+        run: npm run build-only
 
       - name: Run E2E tests
         run: npm run test:e2e -- --project=chromium
@@ -68,11 +82,20 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
       - name: Install dependencies
         run: npm ci
 
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps chromium
+
       - name: Build application
-        run: npm run build
+        run: npm run build-only
 
       - name: Run Lighthouse CI
         run: npm run test:lighthouse
@@ -92,7 +115,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     needs: test # Only run if main tests pass
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     strategy:
       fail-fast: false
@@ -109,6 +131,12 @@ jobs:
           node-version: '22'
           cache: 'npm'
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+
       - name: Install dependencies
         run: npm ci
 
@@ -116,7 +144,7 @@ jobs:
         run: npx playwright install --with-deps ${{ matrix.browser }}
 
       - name: Build application
-        run: npm run build
+        run: npm run build-only
 
       - name: Run E2E tests (${{ matrix.browser }})
         run: npm run test:e2e -- --project=${{ matrix.browser }}

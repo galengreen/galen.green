@@ -25,7 +25,7 @@ export class ContactForm {
     this.nameInput = page.getByLabel('Name')
     this.emailInput = page.getByLabel('Email')
     this.messageInput = page.getByLabel('Message')
-    this.submitButton = page.getByRole('button', { name: /send message/i })
+    this.submitButton = page.locator('button[type="submit"]')
     this.successMessage = page.locator('.contact-success')
     this.errorMessage = page.locator('.form-error')
   }

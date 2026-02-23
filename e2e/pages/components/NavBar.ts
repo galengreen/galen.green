@@ -26,8 +26,6 @@ export class NavBar {
    */
   async clickNavLink(label: string): Promise<void> {
     await this.getNavLink(label).click()
-    // Wait for smooth scroll to complete
-    await this.page.waitForTimeout(500)
   }
 
   /**

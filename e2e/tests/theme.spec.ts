@@ -32,10 +32,10 @@ test.describe('Theme', () => {
 
     await homePage.navbar.toggleTheme()
 
-    // Wait for theme transition
-    await page.waitForTimeout(300)
+    await expect.poll(async () => homePage.getCurrentTheme()).not.toBe(initialTheme)
 
     const newTheme = await homePage.getCurrentTheme()
+
     expect(newTheme).not.toBe(initialTheme)
   })
 
@@ -48,16 +48,20 @@ test.describe('Theme', () => {
 
     // Toggle to opposite theme
     await homePage.navbar.toggleTheme()
-    await page.waitForTimeout(300)
+
+    await expect.poll(async () => homePage.getCurrentTheme()).not.toBe(initialTheme)
 
     const middleTheme = await homePage.getCurrentTheme()
+
     expect(middleTheme).not.toBe(initialTheme)
 
     // Toggle back
     await homePage.navbar.toggleTheme()
-    await page.waitForTimeout(300)
+
+    await expect.poll(async () => homePage.getCurrentTheme()).toBe(initialTheme)
 
     const finalTheme = await homePage.getCurrentTheme()
+
     expect(finalTheme).toBe(initialTheme)
   })
 
@@ -66,9 +70,12 @@ test.describe('Theme', () => {
     await homePage.goto()
     await homePage.waitForContent()
 
+    const initialTheme = await homePage.getCurrentTheme()
+
     // Toggle theme
     await homePage.navbar.toggleTheme()
-    await page.waitForTimeout(300)
+
+    await expect.poll(async () => homePage.getCurrentTheme()).not.toBe(initialTheme)
 
     const themeAfterToggle = await homePage.getCurrentTheme()
 
@@ -145,9 +152,11 @@ test.describe('Theme', () => {
     const initialTitle = await homePage.navbar.getThemeFromToggle()
 
     await homePage.navbar.toggleTheme()
-    await page.waitForTimeout(300)
+
+    await expect.poll(async () => homePage.navbar.getThemeFromToggle()).not.toBe(initialTitle)
 
     const newTitle = await homePage.navbar.getThemeFromToggle()
+
     expect(newTitle).not.toBe(initialTitle)
   })
 })

@@ -6,23 +6,27 @@ import { BasePage } from './BasePage.js'
  */
 export class BlogPostPage extends BasePage {
   readonly article: Locator
-  readonly backButton: Locator
+  readonly closeButton: Locator
   readonly postTitle: Locator
   readonly postDate: Locator
   readonly postContent: Locator
   readonly coverImage: Locator
-  readonly loadingState: Locator
+  readonly loadingScreen: Locator
+  readonly lightboxOverlay: Locator
+  readonly blogSection: Locator
   readonly errorState: Locator
 
   constructor(page: Page) {
     super(page)
-    this.article = page.locator('article.blog-post')
-    this.backButton = page.locator('.back-link')
-    this.postTitle = page.locator('.post-title')
-    this.postDate = page.locator('.post-date')
-    this.postContent = page.locator('.post-content')
-    this.coverImage = page.locator('.cover-image')
-    this.loadingState = page.locator('.loading')
+    this.article = page.locator('.content-lightbox-inner')
+    this.closeButton = page.getByRole('button', { name: 'Close' })
+    this.postTitle = page.locator('.lightbox-title')
+    this.postDate = page.locator('.lightbox-date')
+    this.postContent = page.locator('.lightbox-body')
+    this.coverImage = page.locator('.lightbox-cover img')
+    this.loadingScreen = page.locator('.loading-screen')
+    this.lightboxOverlay = page.locator('.lightbox-overlay')
+    this.blogSection = page.locator('#blog')
     this.errorState = page.locator('.error')
   }
 
@@ -30,24 +34,25 @@ export class BlogPostPage extends BasePage {
    * Navigate to a blog post by slug
    */
   async goto(slug: string): Promise<void> {
-    await super.goto(`/blog/${slug}`)
+    await super.goto(`/#blog/${slug}`)
   }
 
   /**
    * Wait for post content to load
    */
   async waitForContent(): Promise<void> {
-    // Wait for either content or error to be visible
-    await Promise.race([
-      this.postContent.waitFor({ state: 'visible', timeout: 10000 }),
-      this.errorState.waitFor({ state: 'visible', timeout: 10000 }),
-    ]).catch(() => {
-      // If neither appears, just wait for loading to disappear
+    await this.page.waitForLoadState('networkidle')
+
+    await this.loadingScreen.waitFor({ state: 'hidden', timeout: 5000 }).catch(() => {
+      // Overlay may not render in very fast test runs
     })
 
-    // Ensure loading is hidden
-    await this.loadingState.waitFor({ state: 'hidden', timeout: 10000 }).catch(() => {
-      // Loading might not exist if content loaded immediately
+    // Wait for either lightbox content or blog section to be visible
+    await Promise.race([
+      this.postContent.waitFor({ state: 'visible', timeout: 10000 }),
+      this.blogSection.waitFor({ state: 'visible', timeout: 10000 }),
+    ]).catch(() => {
+      // If neither appears, checks using locators will fail with clearer context
     })
   }
 
@@ -55,9 +60,10 @@ export class BlogPostPage extends BasePage {
    * Check if post is loaded successfully
    */
   async isPostLoaded(): Promise<boolean> {
+    const isLightboxOpen = await this.lightboxOverlay.isVisible()
     const hasTitle = await this.postTitle.isVisible()
     const hasContent = await this.postContent.isVisible()
-    return hasTitle && hasContent
+    return isLightboxOpen && hasTitle && hasContent
   }
 
   /**
@@ -109,8 +115,7 @@ export class BlogPostPage extends BasePage {
    * Click the back button to return to blog list
    */
   async goBack(): Promise<void> {
-    await this.backButton.click()
-    // Wait for navigation
+    await this.closeButton.click()
     await this.page.waitForURL('**/#blog')
   }
 
@@ -126,14 +131,18 @@ export class BlogPostPage extends BasePage {
    * Click the "Go back" button in error state
    */
   async clickErrorGoBack(): Promise<void> {
-    await this.errorState.getByRole('button', { name: 'Go back' }).click()
+    await this.page.evaluate(() => {
+      history.replaceState(null, '', '#blog')
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    })
+    await this.page.waitForURL('**/#blog')
   }
 
   /**
    * Check if loading skeleton is visible
    */
   async isLoading(): Promise<boolean> {
-    return this.loadingState.isVisible()
+    return this.loadingScreen.isVisible()
   }
 
   /**

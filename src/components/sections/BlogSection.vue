@@ -47,7 +47,16 @@ const formatDateLong = (dateString: string) => {
       </div>
 
       <div v-else-if="posts.length" class="blog-list">
-        <article v-for="post in posts" :key="post.id" class="blog-item" @click="openPost(post.id)">
+        <article
+          v-for="post in posts"
+          :key="post.id"
+          class="blog-item"
+          role="button"
+          tabindex="0"
+          @click="openPost(post.id)"
+          @keydown.enter.prevent="openPost(post.id)"
+          @keydown.space.prevent="openPost(post.id)"
+        >
           <time class="blog-date text-subtle">{{ formatDate(post.date) }}</time>
           <h3 class="blog-title">{{ post.title }}</h3>
           <p v-if="post.excerpt" class="blog-excerpt text-muted">{{ post.excerpt }}</p>
@@ -76,7 +85,7 @@ const formatDateLong = (dateString: string) => {
           <!-- Content -->
           <div class="lightbox-content">
             <header class="lightbox-header">
-              <time class="lightbox-date text-subtle">{{ formatDateLong(selectedPost.date) }}</time>
+              <time class="lightbox-date text-muted">{{ formatDateLong(selectedPost.date) }}</time>
               <h2 class="lightbox-title">{{ selectedPost.title }}</h2>
             </header>
 
