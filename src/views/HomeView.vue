@@ -106,6 +106,17 @@ onMounted(async () => {
         githubStats.value = githubData.value
       }
       loading.value.github = false
+
+      const allFailed =
+        aboutData.status === 'rejected' &&
+        projectsData.status === 'rejected' &&
+        blogData.status === 'rejected' &&
+        photosData.status === 'rejected' &&
+        githubData.status === 'rejected'
+
+      if (allFailed) {
+        error.value = 'Failed to load content. Please try again later.'
+      }
     } catch (e) {
       console.error('Failed to fetch data:', e)
     }
@@ -115,8 +126,11 @@ onMounted(async () => {
 })
 
 // Prefetch remaining images during idle time once critical images are loaded
-watch(criticalImagesLoaded, (loaded) => {
-  if (loaded) {
+watch(
+  [criticalImagesLoaded, projects, photos, blogPosts],
+  ([loaded]) => {
+    if (!loaded) return
+
     // Collect all non-critical image URLs to prefetch
     const urlsToPrefetch: string[] = []
 
@@ -147,8 +161,9 @@ watch(criticalImagesLoaded, (loaded) => {
     if (urlsToPrefetch.length > 0) {
       prefetchOnIdle(urlsToPrefetch)
     }
-  }
-})
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -164,6 +179,8 @@ watch(criticalImagesLoaded, (loaded) => {
     />
 
     <div class="page-content">
+      <p v-if="error" class="page-error" role="alert">{{ error }}</p>
+
       <AboutSection
         :title="sectionTitles.about"
         :about="about"
@@ -198,6 +215,12 @@ watch(criticalImagesLoaded, (loaded) => {
   max-width: 1000px;
   margin: 0 auto;
   padding: 0 var(--space-6);
+}
+
+.page-error {
+  margin-bottom: var(--space-6);
+  color: #ef4444;
+  text-align: center;
 }
 
 @media (max-width: 768px) {

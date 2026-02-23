@@ -112,7 +112,8 @@ async function preloadCriticalMedia(
 function prefetchOnIdle(urls: string[]): void {
   if (typeof window === 'undefined') return
 
-  const validUrls = urls.filter((url) => url && !prefetchedUrls.has(url))
+  const uniqueUrls = Array.from(new Set(urls))
+  const validUrls = uniqueUrls.filter((url) => url && !prefetchedUrls.has(url))
 
   if (validUrls.length === 0) return
 
@@ -158,6 +159,7 @@ function reset(): void {
   criticalImagesLoaded.value = false
   loadedCount.value = 0
   totalCount.value = 0
+  prefetchedUrls.clear()
   pendingLoads.clear()
   loadedUrls.clear()
 }

@@ -198,13 +198,21 @@ test.describe('Contact Form', () => {
       message: 'Test message',
     })
 
+    await page.route('**/api/contact-submissions', async (route) => {
+      await new Promise((resolve) => setTimeout(resolve, 300))
+      await route.fulfill({
+        status: 201,
+        contentType: 'application/json',
+        body: '{}',
+      })
+    })
+
     // Click submit but don't wait for completion
     const submitPromise = homePage.contactForm.submit()
 
-    // Button should show loading text
-    const buttonText = await homePage.contactForm.getSubmitButtonText()
-    expect(buttonText.toLowerCase()).toMatch(/send|sending/i)
+    await expect(homePage.contactForm.submitButton).toContainText('Sending...')
 
     await submitPromise
+    await page.unroute('**/api/contact-submissions')
   })
 })

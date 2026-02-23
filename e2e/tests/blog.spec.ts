@@ -30,8 +30,8 @@ test.describe('Blog', () => {
       const firstPost = mockApi.mockData.blogPosts.docs[0]
       await homePage.clickBlogPost(firstPost.title)
 
-      // Should navigate to blog post page
-      await expect(page).toHaveURL(new RegExp(`/blog/${firstPost.slug}`))
+      // Should deep-link to the selected post in the blog section
+      await expect(page).toHaveURL(new RegExp(`#blog/${firstPost.slug}$`))
     })
   })
 
@@ -91,7 +91,7 @@ test.describe('Blog', () => {
       expect(await blogPostPage.hasCoverImage()).toBe(true)
     })
 
-    test('back button navigates to blog section', async ({ page, mockApi }) => {
+    test('close button navigates back to blog section', async ({ page, mockApi }) => {
       const blogPostPage = new BlogPostPage(page)
       const post = mockApi.mockData.blogPosts.docs[0]
 
@@ -101,29 +101,28 @@ test.describe('Blog', () => {
       await blogPostPage.goBack()
 
       // Should be on homepage with #blog hash
-      await expect(page).toHaveURL(/#blog/)
+      await expect(page).toHaveURL(/#blog$/)
     })
 
-    test('shows error state for non-existent post', async ({ page }) => {
+    test('invalid slug does not open blog lightbox', async ({ page }) => {
       const blogPostPage = new BlogPostPage(page)
 
       await blogPostPage.goto('non-existent-post-slug-12345')
       await blogPostPage.waitForContent()
 
-      expect(await blogPostPage.isErrorShown()).toBe(true)
+      expect(await blogPostPage.isPostLoaded()).toBe(false)
     })
 
-    test('error state shows meaningful message', async ({ page }) => {
+    test('invalid slug preserves deep link URL', async ({ page }) => {
       const blogPostPage = new BlogPostPage(page)
 
       await blogPostPage.goto('non-existent-post-slug-12345')
       await blogPostPage.waitForContent()
 
-      const errorMessage = await blogPostPage.getErrorMessage()
-      expect(errorMessage.toLowerCase()).toContain('not found')
+      await expect(page).toHaveURL(/#blog\/non-existent-post-slug-12345$/)
     })
 
-    test('error state has go back button', async ({ page }) => {
+    test('invalid slug can be reset back to blog section', async ({ page }) => {
       const blogPostPage = new BlogPostPage(page)
 
       await blogPostPage.goto('non-existent-post-slug-12345')

@@ -46,6 +46,8 @@ export function useDeepLink<T extends { id: string; slug: string }>(
       const item = items().find((i) => i.slug === slug)
       if (item) {
         selectedId.value = item.id
+      } else {
+        selectedId.value = null
       }
     } else if (typeof window !== 'undefined' && !window.location.hash.startsWith(hashPrefix)) {
       selectedId.value = null
@@ -53,7 +55,9 @@ export function useDeepLink<T extends { id: string; slug: string }>(
   }
 
   // Auto-open from hash on mount, but only once items are available
-  const stopWatch = watch(
+  let stopWatch: (() => void) | null = null
+
+  stopWatch = watch(
     () => items(),
     (list) => {
       if (list.length === 0) return
@@ -64,7 +68,8 @@ export function useDeepLink<T extends { id: string; slug: string }>(
           selectedId.value = item.id
         }
       }
-      stopWatch()
+      stopWatch?.()
+      stopWatch = null
     },
     { immediate: true },
   )
