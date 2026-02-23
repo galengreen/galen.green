@@ -3,6 +3,8 @@ import { fileURLToPath } from 'url'
 import { buildConfig } from 'payload'
 import { mongooseAdapter } from '@payloadcms/db-mongodb'
 import { lexicalEditor } from '@payloadcms/richtext-lexical'
+import { seoPlugin } from '@payloadcms/plugin-seo'
+import { mcpPlugin } from '@payloadcms/plugin-mcp'
 import sharp from 'sharp'
 
 import { Media, Photos, Projects, BlogPosts, ContactSubmissions, Users } from './collections'
@@ -11,25 +13,11 @@ import { About, GitHubStats, SiteSettings } from './globals'
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
 
-const DEFAULT_FRONTEND_URL = 'https://galen.green'
+import { getAllowedOrigins } from './lib/cors'
 
-const splitOrigins = (value?: string) =>
-  (value || '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean)
+const { productionOrigins, developmentOrigins } = getAllowedOrigins()
 
-const productionOrigins = Array.from(
-  new Set([
-    DEFAULT_FRONTEND_URL,
-    ...splitOrigins(process.env.FRONTEND_URL),
-    ...splitOrigins(process.env.DEV_FRONTEND_URL),
-  ]),
-)
-
-const developmentOrigins = Array.from(
-  new Set(['http://localhost:5173', 'http://localhost:3000', ...productionOrigins]),
-)
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://galen.green'
 
 export default buildConfig({
   serverURL: process.env.NEXT_PUBLIC_SERVER_URL || 'http://localhost:3000',
@@ -43,6 +31,55 @@ export default buildConfig({
   collections: [Users, Media, Photos, Projects, BlogPosts, ContactSubmissions],
   globals: [SiteSettings, About, GitHubStats],
   editor: lexicalEditor(),
+  plugins: [
+    seoPlugin({
+      collections: ['blog-posts', 'projects'],
+      uploadsCollection: 'media',
+      tabbedUI: true,
+      generateTitle: ({ doc }) => `${doc?.title ?? 'Untitled'} | Galen Green`,
+      generateDescription: ({ doc }) => doc?.excerpt ?? '',
+      generateImage: ({ doc }) => doc?.coverImage ?? doc?.images?.[0]?.image ?? null,
+      generateURL: ({ doc, collectionSlug }) => {
+        const slug = doc?.slug ?? ''
+        if (collectionSlug === 'blog-posts') return `${SITE_URL}/#blog/${slug}`
+        if (collectionSlug === 'projects') return `${SITE_URL}/#projects/${slug}`
+        return SITE_URL
+      },
+    }),
+    mcpPlugin({
+      collections: {
+        'blog-posts': {
+          enabled: {
+            find: true,
+            create: true,
+            update: true,
+            delete: false,
+          },
+          description:
+            'Blog posts about software engineering, web development, and personal projects by Galen Green',
+        },
+        projects: {
+          enabled: {
+            find: true,
+            create: true,
+            update: true,
+            delete: false,
+          },
+          description:
+            'Portfolio projects showcasing web applications, tools, and open source work with tech stack details',
+        },
+        photos: {
+          enabled: {
+            find: true,
+            create: false,
+            update: false,
+            delete: false,
+          },
+          description: 'Photography portfolio with landscape, nature, and travel photographs',
+        },
+      },
+    }),
+  ],
   secret: (() => {
     const secret = process.env.PAYLOAD_SECRET
     if (!secret) {

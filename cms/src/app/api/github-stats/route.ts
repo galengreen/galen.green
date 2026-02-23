@@ -1,20 +1,10 @@
 import { NextResponse } from 'next/server'
 import { getPayload } from 'payload'
 import config from '@payload-config'
+import { getAllowedOrigins } from '@/lib/cors'
 
-const DEFAULT_FRONTEND_URL = 'https://galen.green'
-
-const splitOrigins = (value?: string) =>
-  (value || '')
-    .split(',')
-    .map((origin) => origin.trim())
-    .filter(Boolean)
-
-const allowedOrigins = new Set([
-  DEFAULT_FRONTEND_URL,
-  ...splitOrigins(process.env.FRONTEND_URL),
-  ...splitOrigins(process.env.DEV_FRONTEND_URL),
-])
+const { productionOrigins, DEFAULT_FRONTEND_URL } = getAllowedOrigins()
+const allowedOrigins = new Set(productionOrigins)
 
 const getCorsHeaders = (request: Request) => {
   const origin = request.headers.get('origin')

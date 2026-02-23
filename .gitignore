@@ -60,6 +60,9 @@ media/
 !.env.example
 !cms/.env.example
 
+# Syncthing conflict files
+.sync-conflict-*
+
 # Documentation (generated/audit files)
 docs/HOSTING_AUDIT.md
 plan.md
