@@ -69,9 +69,6 @@ useSeo({
   jobTitle: computed(() => siteSettings.value?.seo?.jobTitle),
 })
 
-// Error state
-const error = ref<string | null>(null)
-
 // Fetch all data
 onMounted(async () => {
   // Fetch in parallel (excluding siteSettings which comes from App.vue)
@@ -121,7 +118,6 @@ onMounted(async () => {
         error.value = 'Failed to load content. Please try again later.'
       }
     } catch (e) {
-      error.value = 'Failed to load content. Please try again later.'
       console.error('Failed to fetch data:', e)
     }
   }
@@ -180,7 +176,6 @@ watch(
       :background-image-dark="siteSettings?.heroBackground?.dark"
       :foreground-image-light="siteSettings?.heroForeground?.light"
       :foreground-image-dark="siteSettings?.heroForeground?.dark"
-      :visible="true"
     />
 
     <div class="page-content">
@@ -192,31 +187,19 @@ watch(
         :github-stats="githubStats"
         :loading-about="loading.about"
         :loading-github="loading.github"
-        :visible="true"
       />
 
       <ProjectsSection
         :title="sectionTitles.projects"
         :projects="projects"
         :loading="loading.projects"
-        :visible="true"
       />
 
-      <BlogSection
-        :title="sectionTitles.blog"
-        :posts="blogPosts"
-        :loading="loading.blog"
-        :visible="true"
-      />
+      <BlogSection :title="sectionTitles.blog" :posts="blogPosts" :loading="loading.blog" />
 
-      <PhotosSection
-        :title="sectionTitles.photos"
-        :photos="photos"
-        :loading="loading.photos"
-        :visible="true"
-      />
+      <PhotosSection :title="sectionTitles.photos" :photos="photos" :loading="loading.photos" />
 
-      <ContactSection :title="sectionTitles.contact" :visible="true" />
+      <ContactSection :title="sectionTitles.contact" />
 
       <FooterSection :name="siteSettings?.name" :socials="siteSettings?.socials" />
     </div>

@@ -31,6 +31,11 @@ function preloadImage(url: string): Promise<void> {
       return
     }
 
+    if (typeof Image === 'undefined') {
+      resolve()
+      return
+    }
+
     const img = new Image()
     img.onload = () => resolve()
     img.onerror = () => {

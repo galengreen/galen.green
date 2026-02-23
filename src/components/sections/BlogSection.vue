@@ -1,17 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import {
-  formatDate,
-  getImageUrl,
-  getImageSrcset,
-  getImageSrcsetAvif,
-  imageSizesPresets,
-} from '@/composables/useMedia'
+import { formatDate } from '@/composables/useMedia'
 import { useDeepLink } from '@/composables/useDeepLink'
+import SectionShell from '@/components/sections/SectionShell.vue'
 import EmptyState from '@/components/ui/EmptyState.vue'
 import SkeletonText from '@/components/ui/SkeletonText.vue'
 import ContentLightbox from '@/components/ui/ContentLightbox.vue'
-import LazyImage from '@/components/ui/LazyImage.vue'
+import LightboxContent from '@/components/ui/LightboxContent.vue'
+import ResponsiveImage from '@/components/ui/ResponsiveImage.vue'
 import RichText from '@/components/ui/RichText.vue'
 import type { BlogPost } from '@/types'
 
@@ -19,7 +15,6 @@ const props = defineProps<{
   title: string
   posts: BlogPost[]
   loading: boolean
-  visible: boolean
 }>()
 
 const {
@@ -36,67 +31,58 @@ const formatDateLong = (dateString: string) => {
 </script>
 
 <template>
-  <section id="blog" class="section fade-in" :class="{ visible }">
-    <div class="container container-narrow">
-      <h2 class="section-title">{{ title }}</h2>
-
-      <div v-if="loading" class="blog-list">
-        <div v-for="i in 3" :key="i" class="blog-item">
-          <SkeletonText :lines="3" short-last />
-        </div>
+  <SectionShell id="blog" :title="title" container="narrow">
+    <div v-if="loading" class="blog-list">
+      <div v-for="i in 3" :key="i" class="blog-item">
+        <SkeletonText :lines="3" short-last />
       </div>
-
-      <div v-else-if="posts.length" class="blog-list">
-        <article
-          v-for="post in posts"
-          :key="post.id"
-          class="blog-item"
-          role="button"
-          tabindex="0"
-          @click="openPost(post.id)"
-          @keydown.enter.prevent="openPost(post.id)"
-          @keydown.space.prevent="openPost(post.id)"
-        >
-          <time class="blog-date text-subtle">{{ formatDate(post.date) }}</time>
-          <h3 class="blog-title">{{ post.title }}</h3>
-          <p v-if="post.excerpt" class="blog-excerpt text-muted">{{ post.excerpt }}</p>
-        </article>
-      </div>
-
-      <EmptyState v-else message="Blog posts coming soon..." />
-
-      <!-- Blog Post Lightbox -->
-      <ContentLightbox :open="!!selectedPost" @close="closePost">
-        <template v-if="selectedPost">
-          <!-- Cover image -->
-          <LazyImage
-            v-if="selectedPost.coverImage"
-            :src="getImageUrl(selectedPost.coverImage, 'lg')"
-            :srcset="getImageSrcset(selectedPost.coverImage)"
-            :srcset-avif="getImageSrcsetAvif(selectedPost.coverImage)"
-            :sizes="imageSizesPresets.hero"
-            :thumbnail-src="getImageUrl(selectedPost.coverImage, 'xs')"
-            :alt="selectedPost.coverImage.alt || selectedPost.title"
-            :aspect-ratio="selectedPost.coverImage.height / selectedPost.coverImage.width"
-            class="lightbox-cover"
-            eager
-          />
-
-          <!-- Content -->
-          <div class="lightbox-content">
-            <header class="lightbox-header">
-              <time class="lightbox-date text-muted">{{ formatDateLong(selectedPost.date) }}</time>
-              <h2 class="lightbox-title">{{ selectedPost.title }}</h2>
-            </header>
-
-            <div class="lightbox-body">
-              <RichText :content="selectedPost.content" />
-            </div>
-          </div>
-        </template>
-      </ContentLightbox>
     </div>
-  </section>
+
+    <div v-else-if="posts.length" class="blog-list">
+      <article
+        v-for="post in posts"
+        :key="post.id"
+        class="blog-item"
+        role="button"
+        tabindex="0"
+        @click="openPost(post.id)"
+        @keydown.enter.prevent="openPost(post.id)"
+        @keydown.space.prevent="openPost(post.id)"
+      >
+        <time class="blog-date text-subtle">{{ formatDate(post.date) }}</time>
+        <h3 class="blog-title">{{ post.title }}</h3>
+        <p v-if="post.excerpt" class="blog-excerpt text-muted">{{ post.excerpt }}</p>
+      </article>
+    </div>
+
+    <EmptyState v-else message="Blog posts coming soon..." />
+
+    <ContentLightbox :open="!!selectedPost" @close="closePost">
+      <template v-if="selectedPost">
+        <ResponsiveImage
+          v-if="selectedPost.coverImage"
+          :media="selectedPost.coverImage"
+          :alt="selectedPost.coverImage.alt || selectedPost.title"
+          size="lg"
+          sizes-preset="hero"
+          thumbnail-size="xs"
+          class="lightbox-cover"
+          eager
+        />
+
+        <LightboxContent>
+          <header class="lightbox-header">
+            <time class="lightbox-date text-muted">{{ formatDateLong(selectedPost.date) }}</time>
+            <h2 class="lightbox-title">{{ selectedPost.title }}</h2>
+          </header>
+
+          <div class="lightbox-body">
+            <RichText :content="selectedPost.content" />
+          </div>
+        </LightboxContent>
+      </template>
+    </ContentLightbox>
+  </SectionShell>
 </template>
 
 <style scoped>
@@ -136,13 +122,8 @@ const formatDateLong = (dateString: string) => {
   line-height: var(--leading-relaxed);
 }
 
-/* Lightbox content styles */
 .lightbox-cover {
   width: 100%;
-}
-
-.lightbox-content {
-  padding: var(--space-6);
 }
 
 .lightbox-header {
@@ -168,10 +149,6 @@ const formatDateLong = (dateString: string) => {
 @media (max-width: 768px) {
   .blog-item {
     padding: var(--space-3);
-  }
-
-  .lightbox-content {
-    padding: var(--space-4);
   }
 
   .lightbox-title {

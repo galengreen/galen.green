@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref } from 'vue'
+import SectionShell from '@/components/sections/SectionShell.vue'
 import Card from '@/components/ui/CustomCard.vue'
 import { api } from '@/services/payload'
 
 defineProps<{
   title: string
-  visible: boolean
 }>()
 
 const contactForm = ref({
@@ -35,64 +35,60 @@ const submitContact = async () => {
 </script>
 
 <template>
-  <section id="contact" class="section fade-in" :class="{ visible }">
-    <div class="container container-narrow">
-      <h2 class="section-title">{{ title }}</h2>
+  <SectionShell id="contact" :title="title" container="narrow">
+    <Card
+      v-if="contactSuccess"
+      padding="lg"
+      radius="sm"
+      :opacity="80"
+      :blur="12"
+      class="contact-success"
+    >
+      <p>Thanks for your message! I'll get back to you soon.</p>
+    </Card>
 
-      <Card
-        v-if="contactSuccess"
-        padding="lg"
-        radius="sm"
-        :opacity="80"
-        :blur="12"
-        class="contact-success"
-      >
-        <p>Thanks for your message! I'll get back to you soon.</p>
-      </Card>
+    <form v-else class="contact-form" @submit.prevent="submitContact">
+      <div class="form-group">
+        <label for="name">Name</label>
+        <input
+          v-model="contactForm.name"
+          type="text"
+          id="name"
+          name="name"
+          required
+          :disabled="contactSubmitting"
+        />
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          v-model="contactForm.email"
+          type="email"
+          id="email"
+          name="email"
+          required
+          :disabled="contactSubmitting"
+        />
+      </div>
+      <div class="form-group">
+        <label for="message">Message</label>
+        <textarea
+          v-model="contactForm.message"
+          id="message"
+          name="message"
+          rows="5"
+          required
+          :disabled="contactSubmitting"
+        ></textarea>
+      </div>
 
-      <form v-else class="contact-form" @submit.prevent="submitContact">
-        <div class="form-group">
-          <label for="name">Name</label>
-          <input
-            v-model="contactForm.name"
-            type="text"
-            id="name"
-            name="name"
-            required
-            :disabled="contactSubmitting"
-          />
-        </div>
-        <div class="form-group">
-          <label for="email">Email</label>
-          <input
-            v-model="contactForm.email"
-            type="email"
-            id="email"
-            name="email"
-            required
-            :disabled="contactSubmitting"
-          />
-        </div>
-        <div class="form-group">
-          <label for="message">Message</label>
-          <textarea
-            v-model="contactForm.message"
-            id="message"
-            name="message"
-            rows="5"
-            required
-            :disabled="contactSubmitting"
-          ></textarea>
-        </div>
+      <p v-if="contactError" class="form-error">{{ contactError }}</p>
 
-        <p v-if="contactError" class="form-error">{{ contactError }}</p>
-
-        <button type="submit" class="btn btn-primary" :disabled="contactSubmitting">
-          {{ contactSubmitting ? 'Sending...' : 'Send Message' }}
-        </button>
-      </form>
-    </div>
-  </section>
+      <button type="submit" class="btn btn-primary" :disabled="contactSubmitting">
+        {{ contactSubmitting ? 'Sending...' : 'Send Message' }}
+      </button>
+    </form>
+  </SectionShell>
 </template>
 
 <style scoped>

@@ -2,6 +2,7 @@
 import { computed, onMounted, onUnmounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useTheme } from '@/composables/useTheme'
+import { getScrollRoot, scrollToSection } from '@/utils/scroll'
 
 const { theme, toggleTheme, initTheme } = useTheme()
 const route = useRoute()
@@ -17,27 +18,14 @@ const sections = [
 
 const isHomePage = computed(() => route.name === 'home')
 
-const getScrollRoot = () => document.getElementById('scroll-root')
-
-const scrollToSection = (id: string) => {
-  const element = document.getElementById(id)
-  const scrollRoot = getScrollRoot()
-
-  if (element && scrollRoot) {
-    const elementTop = element.offsetTop
-    const navbarOffset = 100
-
-    scrollRoot.scrollTo({
-      top: elementTop - navbarOffset,
-      behavior: 'smooth',
-    })
-  }
+const scrollToSectionLocal = (id: string) => {
+  scrollToSection(id)
 }
 
 const navigateToSection = (id: string) => {
   if (isHomePage.value) {
     // On home page, scroll directly
-    scrollToSection(id)
+    scrollToSectionLocal(id)
   } else {
     // On other pages, navigate to home with hash
     router.push({ name: 'home', hash: `#${id}` })

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SectionShell from '@/components/sections/SectionShell.vue'
 import Card from '@/components/ui/CustomCard.vue'
 import GitHubGraph from '@/components/ui/GitHubGraph.vue'
 import RichText from '@/components/ui/RichText.vue'
@@ -12,38 +13,33 @@ defineProps<{
   githubStats: GitHubStats | null
   loadingAbout: boolean
   loadingGithub: boolean
-  visible: boolean
 }>()
 </script>
 
 <template>
-  <section id="about" class="section fade-in" :class="{ visible }">
-    <div class="container container-narrow">
-      <h2 class="section-title">{{ title }}</h2>
-
-      <Card padding="lg" :opacity="80" :blur="12" class="about-card">
-        <div v-if="loadingAbout">
-          <SkeletonText :lines="3" short-last />
-        </div>
-        <div v-else-if="about?.content" class="about-content">
-          <RichText :content="about.content" />
-        </div>
-      </Card>
-
-      <!-- GitHub Activity -->
-      <div v-if="loadingGithub" class="github-loading">
-        <SkeletonBox height="200px" rounded="lg" />
+  <SectionShell id="about" :title="title" container="narrow">
+    <Card padding="lg" :opacity="80" :blur="12" class="about-card">
+      <div v-if="loadingAbout">
+        <SkeletonText :lines="3" short-last />
       </div>
-      <GitHubGraph
-        v-else-if="githubStats?.contributionGraph"
-        :contribution-graph="githubStats.contributionGraph"
-        :total-contributions="githubStats.totalContributions"
-        :current-streak="githubStats.currentStreak"
-        :longest-streak="githubStats.longestStreak"
-        class="about-github"
-      />
+      <div v-else-if="about?.content" class="about-content">
+        <RichText :content="about.content" />
+      </div>
+    </Card>
+
+    <!-- GitHub Activity -->
+    <div v-if="loadingGithub" class="github-loading">
+      <SkeletonBox height="200px" rounded="lg" />
     </div>
-  </section>
+    <GitHubGraph
+      v-else-if="githubStats?.contributionGraph"
+      :contribution-graph="githubStats.contributionGraph"
+      :total-contributions="githubStats.totalContributions"
+      :current-streak="githubStats.currentStreak"
+      :longest-streak="githubStats.longestStreak"
+      class="about-github"
+    />
+  </SectionShell>
 </template>
 
 <style scoped>

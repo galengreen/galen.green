@@ -25,6 +25,8 @@ import {
 
 import App from './App.vue'
 import { routes } from './router'
+import { scrollToHash, scrollToTop } from '@/utils/scroll'
+import { useTheme } from '@/composables/useTheme'
 
 import './assets/styles/reset.css'
 import './assets/styles/variables.css'
@@ -57,28 +59,14 @@ export const createApp = ViteSSG(
     routes,
     base: import.meta.env.BASE_URL,
     scrollBehavior(to, _from, savedPosition) {
-      // Handle hash navigation with custom scroll root
       if (to.hash) {
-        const element = document.querySelector(to.hash)
-        const scrollRoot = document.getElementById('scroll-root')
-        if (element && scrollRoot) {
-          const elementTop = (element as HTMLElement).offsetTop
-          const navbarOffset = 100
-          scrollRoot.scrollTo({
-            top: elementTop - navbarOffset,
-            behavior: 'smooth',
-          })
-        }
+        scrollToHash(to.hash)
         return false
       }
       if (savedPosition) {
         return savedPosition
       }
-      // Scroll custom scroll root to top
-      const scrollRoot = document.getElementById('scroll-root')
-      if (scrollRoot) {
-        scrollRoot.scrollTo({ top: 0 })
-      }
+      scrollToTop()
       return { top: 0 }
     },
   },
@@ -89,12 +77,8 @@ export const createApp = ViteSSG(
     // Client-only initialisation
     if (isClient) {
       // Initialise theme from system preference or localStorage
-      const savedTheme = localStorage.getItem('theme')
-      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-
-      if (savedTheme === 'dark' || (!savedTheme && prefersDark)) {
-        document.documentElement.classList.add('dark')
-      }
+      const { initTheme } = useTheme()
+      initTheme()
 
       // Matomo Analytics
       const matomoUrl = import.meta.env.VITE_MATOMO_URL

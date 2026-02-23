@@ -16,6 +16,7 @@ export function useDeepLink<T extends { id: string; slug: string }>(
   const hashPrefix = `#${section}/`
 
   const getSlugFromHash = (): string | null => {
+    if (typeof window === 'undefined') return null
     const hash = window.location.hash
     if (hash.startsWith(hashPrefix)) {
       return hash.slice(hashPrefix.length)
@@ -26,7 +27,7 @@ export function useDeepLink<T extends { id: string; slug: string }>(
   const open = (id: string) => {
     const item = items().find((i) => i.id === id)
     selectedId.value = id
-    if (item) {
+    if (item && typeof history !== 'undefined') {
       history.replaceState(null, '', `${hashPrefix}${item.slug}`)
     }
   }
@@ -34,7 +35,9 @@ export function useDeepLink<T extends { id: string; slug: string }>(
   const close = () => {
     selectedId.value = null
     // Restore the section hash so scroll position anchors still work
-    history.replaceState(null, '', `#${section}`)
+    if (typeof history !== 'undefined') {
+      history.replaceState(null, '', `#${section}`)
+    }
   }
 
   const onHashChange = () => {
@@ -46,7 +49,7 @@ export function useDeepLink<T extends { id: string; slug: string }>(
       } else {
         selectedId.value = null
       }
-    } else if (!window.location.hash.startsWith(hashPrefix)) {
+    } else if (typeof window !== 'undefined' && !window.location.hash.startsWith(hashPrefix)) {
       selectedId.value = null
     }
   }
