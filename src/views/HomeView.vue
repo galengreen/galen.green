@@ -25,6 +25,7 @@ const projects = ref<Project[]>([])
 const blogPosts = ref<BlogPost[]>([])
 const photos = ref<Photo[]>([])
 const githubStats = ref<GitHubStats | null>(null)
+const error = ref<string | null>(null)
 
 // Loading states
 const loading = ref({
@@ -118,6 +119,7 @@ onMounted(async () => {
         error.value = 'Failed to load content. Please try again later.'
       }
     } catch (e) {
+      error.value = 'Failed to load content. Please try again later.'
       console.error('Failed to fetch data:', e)
     }
   }
