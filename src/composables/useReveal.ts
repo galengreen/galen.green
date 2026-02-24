@@ -21,7 +21,8 @@ export function useReveal(target: Ref<Element | null>, options?: IntersectionObs
           }
         })
       },
-      { rootMargin: '0px 0px -10% 0px', threshold: 0.1, ...options },
+      // Use a 0 threshold so very tall sections still reveal on small viewports.
+      { rootMargin: '0px 0px -10% 0px', threshold: 0, ...options },
     )
 
     if (target.value) {
