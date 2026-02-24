@@ -120,17 +120,24 @@ const onAfterLeave = () => {
   position: fixed;
   inset: 0;
   z-index: 9999;
+  box-sizing: border-box;
+  padding: var(--frame-width);
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-background);
+  background-color: var(--color-frame);
 }
 
 .loading-content {
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: var(--space-6);
+  border-radius: var(--frame-radius);
+  background-color: var(--color-background);
 }
 
 /* Spinner */
