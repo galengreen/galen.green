@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import exifr from 'exifr'
 import { readFile } from 'fs/promises'
 import { isAuthenticated } from '../access/isAuthenticated'
+import { regenerateMedia } from '../lib/regenerateMedia'
 
 // Helper to convert filename to readable title
 const filenameToTitle = (filename: string): string => {
@@ -92,6 +93,31 @@ export const Media: CollectionConfig = {
     singular: 'Media',
     plural: 'Media',
   },
+  admin: {
+    components: {
+      beforeList: ['@/components/RegenerateMediaButton#RegenerateMediaButton'],
+    },
+  },
+  endpoints: [
+    {
+      path: '/regenerate',
+      method: 'post',
+      handler: async (req) => {
+        if (!req.user) {
+          return Response.json({ error: 'Unauthorised' }, { status: 401 })
+        }
+
+        const result = await regenerateMedia({
+          payload: req.payload,
+        })
+
+        return Response.json({
+          message: `Regenerated ${result.success} media items`,
+          ...result,
+        })
+      },
+    },
+  ],
   access: {
     read: () => true,
     create: isAuthenticated,
@@ -102,6 +128,7 @@ export const Media: CollectionConfig = {
     staticDir: process.env.MEDIA_DIR || '../media',
     mimeTypes: ['image/*'],
     filesRequiredOnCreate: false,
+    focalPoint: false,
     // Preserve the uploaded original file exactly as provided.
     // Generated derivatives are defined separately in imageSizes.
     imageSizes: generateImageSizes(),
