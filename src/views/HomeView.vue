@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch, inject, type Ref } from 'vue'
+import { computed, ref, watch, inject, type Ref } from 'vue'
 import FooterSection from '@/components/sections/FooterSection.vue'
 import AboutSection from '@/components/sections/AboutSection.vue'
 import BlogSection from '@/components/sections/BlogSection.vue'
@@ -7,11 +7,11 @@ import ContactSection from '@/components/sections/ContactSection.vue'
 import HeroSection from '@/components/sections/HeroSection.vue'
 import PhotosSection from '@/components/sections/PhotosSection.vue'
 import ProjectsSection from '@/components/sections/ProjectsSection.vue'
+import { useHomeContent } from '@/composables/useHomeContent'
 import { useImagePreloader } from '@/composables/useImagePreloader'
 import { getImageUrl } from '@/composables/useMedia'
 import { useSeo, toAbsoluteUrl } from '@/composables/useSeo'
-import { api } from '@/services/payload'
-import type { About, BlogPost, GitHubStats, Photo, Project, SiteSettings } from '@/types'
+import type { SiteSettings } from '@/types'
 
 // Image preloader for idle prefetch
 const { prefetchOnIdle, criticalImagesLoaded } = useImagePreloader()
@@ -19,22 +19,7 @@ const { prefetchOnIdle, criticalImagesLoaded } = useImagePreloader()
 // Get site settings from App.vue (already fetched)
 const siteSettings = inject<Ref<SiteSettings | null>>('siteSettings', ref(null))
 
-// Data refs
-const about = ref<About | null>(null)
-const projects = ref<Project[]>([])
-const blogPosts = ref<BlogPost[]>([])
-const photos = ref<Photo[]>([])
-const githubStats = ref<GitHubStats | null>(null)
-const error = ref<string | null>(null)
-
-// Loading states
-const loading = ref({
-  about: true,
-  projects: true,
-  blog: true,
-  photos: true,
-  github: true,
-})
+const { about, projects, blogPosts, photos, githubStats, error, loading } = useHomeContent()
 
 // Computed helpers for site settings
 const siteName = computed(() => ({
@@ -68,63 +53,6 @@ useSeo({
   socials: computed(() => siteSettings.value?.socials),
   personImage: personImageUrl,
   jobTitle: computed(() => siteSettings.value?.seo?.jobTitle),
-})
-
-// Fetch all data
-onMounted(async () => {
-  // Fetch in parallel (excluding siteSettings which comes from App.vue)
-  const fetchAll = async () => {
-    try {
-      const [aboutData, projectsData, blogData, photosData, githubData] = await Promise.allSettled([
-        api.globals.getAbout(),
-        api.projects.getFeatured(),
-        api.blogPosts.getRecent(5),
-        api.photos.getAll(30),
-        api.github.getStats(),
-      ])
-
-      if (aboutData.status === 'fulfilled') {
-        about.value = aboutData.value
-      }
-      loading.value.about = false
-
-      if (projectsData.status === 'fulfilled') {
-        projects.value = projectsData.value
-      }
-      loading.value.projects = false
-
-      if (blogData.status === 'fulfilled') {
-        blogPosts.value = blogData.value
-      }
-      loading.value.blog = false
-
-      if (photosData.status === 'fulfilled') {
-        photos.value = photosData.value
-      }
-      loading.value.photos = false
-
-      if (githubData.status === 'fulfilled') {
-        githubStats.value = githubData.value
-      }
-      loading.value.github = false
-
-      const allFailed =
-        aboutData.status === 'rejected' &&
-        projectsData.status === 'rejected' &&
-        blogData.status === 'rejected' &&
-        photosData.status === 'rejected' &&
-        githubData.status === 'rejected'
-
-      if (allFailed) {
-        error.value = 'Failed to load content. Please try again later.'
-      }
-    } catch (e) {
-      error.value = 'Failed to load content. Please try again later.'
-      console.error('Failed to fetch data:', e)
-    }
-  }
-
-  fetchAll()
 })
 
 // Prefetch remaining images during idle time once critical images are loaded

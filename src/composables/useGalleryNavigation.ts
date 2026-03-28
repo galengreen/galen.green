@@ -86,6 +86,8 @@ export function useGalleryNavigation(options: GalleryNavigationOptions) {
     watch(
       isActive,
       (active) => {
+        if (typeof document === 'undefined') return
+
         if (active) {
           document.addEventListener('keydown', handleKeydown)
         } else {
@@ -96,6 +98,8 @@ export function useGalleryNavigation(options: GalleryNavigationOptions) {
     )
 
     onUnmounted(() => {
+      if (typeof document === 'undefined') return
+
       document.removeEventListener('keydown', handleKeydown)
     })
   }

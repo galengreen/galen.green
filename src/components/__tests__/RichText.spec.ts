@@ -151,6 +151,37 @@ describe('RichText', () => {
     expect(wrapper.html()).not.toContain('javascript:')
   })
 
+  it('sanitises mixed-case script URLs and escapes quoted href values', () => {
+    const content = {
+      root: {
+        children: [
+          {
+            type: 'paragraph',
+            children: [
+              {
+                type: 'link',
+                url: ' JaVaScRiPt:alert("xss") ',
+                children: [{ type: 'text', text: 'Unsafe link' }],
+              },
+              {
+                type: 'link',
+                url: 'https://example.com/?q="quoted"&safe=true',
+                children: [{ type: 'text', text: 'Quoted link' }],
+              },
+            ],
+          },
+        ],
+      },
+    }
+
+    const wrapper = mount(RichText, { props: { content } })
+    const links = wrapper.findAll('a')
+
+    expect(links[0]?.attributes('href')).toBe('#')
+    expect(links[1]?.attributes('href')).toBe('https://example.com/?q="quoted"&safe=true')
+    expect(wrapper.find('script').exists()).toBe(false)
+  })
+
   it('escapes HTML in image alt text', () => {
     const content = {
       root: {

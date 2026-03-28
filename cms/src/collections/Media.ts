@@ -16,8 +16,8 @@ const filenameToTitle = (filename: string): string => {
     .trim()
 }
 
-// Responsive image widths
-const IMAGE_WIDTHS = {
+// Responsive image short-side targets
+const IMAGE_SHORT_SIDES = {
   xs: 320,
   sm: 480,
   md: 768,
@@ -26,41 +26,62 @@ const IMAGE_WIDTHS = {
   xxl: 1920,
 } as const
 
-// Generate image size config for a given width and format
-const createImageSize = (
+const FULL_SIZE_TARGET = 999999
+
+// Generate image size config for a given short-side target and format
+const createResponsiveImageSize = (
   name: string,
-  width: number,
+  shortSide: number,
   format: 'webp' | 'avif',
   quality: number,
 ) => ({
   name: format === 'webp' ? name : `${name}-avif`,
-  width,
-  height: undefined,
+  width: shortSide,
+  height: shortSide,
+  fit: 'outside' as const,
   position: 'centre' as const,
+  withoutEnlargement: true,
   formatOptions: {
     format,
     options: { quality },
   },
 })
 
+const createFullImageSize = (format: 'webp' | 'avif', quality: number) => ({
+  name: format === 'webp' ? 'full' : 'full-avif',
+  width: FULL_SIZE_TARGET,
+  height: FULL_SIZE_TARGET,
+  fit: 'inside' as const,
+  position: 'centre' as const,
+  withoutEnlargement: true,
+  formatOptions: {
+    format,
+    options: { quality },
+  },
+  admin: {
+    disableGroupBy: true,
+    disableListColumn: true,
+    disableListFilter: true,
+  },
+})
+
 // Generate all responsive sizes for both formats
 const generateImageSizes = () => {
-  const sizes: ReturnType<typeof createImageSize>[] = []
+  const sizes: Array<
+    ReturnType<typeof createResponsiveImageSize> | ReturnType<typeof createFullImageSize>
+  > = []
 
   // WebP sizes (quality 85)
-  for (const [name, width] of Object.entries(IMAGE_WIDTHS)) {
-    sizes.push(createImageSize(name, width, 'webp', 85))
+  for (const [name, shortSide] of Object.entries(IMAGE_SHORT_SIDES)) {
+    sizes.push(createResponsiveImageSize(name, shortSide, 'webp', 85))
   }
+  sizes.push(createFullImageSize('webp', 85))
 
   // AVIF sizes (quality 70 - AVIF achieves similar visual quality at lower values)
-  for (const [name, width] of Object.entries(IMAGE_WIDTHS)) {
-    sizes.push(createImageSize(name, width, 'avif', 70))
+  for (const [name, shortSide] of Object.entries(IMAGE_SHORT_SIDES)) {
+    sizes.push(createResponsiveImageSize(name, shortSide, 'avif', 70))
   }
-
-  // Legacy WebP sizes for backwards compatibility
-  sizes.push(createImageSize('thumbnail', 400, 'webp', 85))
-  sizes.push(createImageSize('medium', 800, 'webp', 85))
-  sizes.push(createImageSize('large', 1400, 'webp', 85))
+  sizes.push(createFullImageSize('avif', 70))
 
   return sizes
 }
@@ -81,17 +102,10 @@ export const Media: CollectionConfig = {
     staticDir: process.env.MEDIA_DIR || '../media',
     mimeTypes: ['image/*'],
     filesRequiredOnCreate: false,
-    // Default format for original file (WebP as fallback)
-    formatOptions: {
-      format: 'webp',
-      options: {
-        quality: 85,
-        lossless: false,
-      },
-    },
-    // Responsive image sizes in both AVIF and WebP formats
+    // Preserve the uploaded original file exactly as provided.
+    // Generated derivatives are defined separately in imageSizes.
     imageSizes: generateImageSizes(),
-    adminThumbnail: 'thumbnail',
+    adminThumbnail: 'xs',
   },
   hooks: {
     // Use beforeOperation to extract EXIF before image processing converts to WebP

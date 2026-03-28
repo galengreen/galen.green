@@ -30,6 +30,23 @@ const props = defineProps<{
 const escapeAttr = (s: string): string =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 
+const sanitizeUrl = (url?: string): string => {
+  if (!url) return '#'
+
+  const trimmedUrl = url.trim()
+  const normalizedProtocol = trimmedUrl.replace(/[\u0000-\u001F\u007F\s]+/g, '').toLowerCase()
+
+  if (
+    normalizedProtocol.startsWith('javascript:') ||
+    normalizedProtocol.startsWith('vbscript:') ||
+    normalizedProtocol.startsWith('data:')
+  ) {
+    return '#'
+  }
+
+  return escapeAttr(trimmedUrl)
+}
+
 // Build responsive picture element HTML string
 const buildPictureElement = (media: Media, alt: string): string => {
   const src = getImageUrl(media, 'lg')
@@ -99,7 +116,7 @@ const renderNode = (node: LexicalNode): string => {
       return `<li>${children}</li>`
     case 'link': {
       const target = node.newTab ? ' target="_blank" rel="noopener"' : ''
-      const safeUrl = node.url?.startsWith('javascript:') ? '#' : node.url
+      const safeUrl = sanitizeUrl(node.url)
       return `<a href="${safeUrl}"${target}>${children}</a>`
     }
     case 'quote':

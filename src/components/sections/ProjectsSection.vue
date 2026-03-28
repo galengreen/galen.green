@@ -77,7 +77,11 @@ const selectedProject = computed(
     <EmptyState v-else message="Projects coming soon..." />
 
     <!-- Project Lightbox -->
-    <ContentLightbox :open="!!selectedProject" @close="closeProject">
+    <ContentLightbox
+      :open="!!selectedProject"
+      :title="selectedProject?.title"
+      @close="closeProject"
+    >
       <template v-if="selectedProject">
         <!-- Gallery -->
         <div v-if="selectedProject.images?.length" class="lightbox-gallery">

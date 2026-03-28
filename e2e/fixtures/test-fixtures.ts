@@ -42,6 +42,10 @@ export const test = base.extend<{
     }
 
     const setupMocks = async () => {
+      await page.addInitScript(() => {
+        ;(window as Window & { __DISABLE_SSG_STATE__?: boolean }).__DISABLE_SSG_STATE__ = true
+      })
+
       // Mock globals
       await page.route('**/api/globals/site-settings', (route) => {
         route.fulfill({

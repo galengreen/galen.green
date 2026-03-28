@@ -1,0 +1,13 @@
+# Site Work Board
+
+## Backlog
+
+## In Progress
+
+## Review
+
+- [2026-03-27-image-size-pipeline](cards/2026-03-27-image-size-pipeline.md)
+
+- [2026-03-26-site-bugfixes](cards/2026-03-26-site-bugfixes.md)
+
+## Done

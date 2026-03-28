@@ -2,6 +2,7 @@ import { defineComponent, nextTick, ref } from 'vue'
 import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import HomeView from '../HomeView.vue'
+import { cmsStateKey, createCmsState, type HomeContentState } from '@/composables/useCmsState'
 import { useImagePreloader } from '@/composables/useImagePreloader'
 
 const { apiMocks, getImageUrlMock } = vi.hoisted(() => ({
@@ -99,11 +100,12 @@ const siteSettingsFixture = {
   socials: [],
 }
 
-const mountHomeView = () => {
+const mountHomeView = (initialHomeContent?: HomeContentState | null) => {
   return mount(HomeView, {
     global: {
       provide: {
         siteSettings: ref(siteSettingsFixture),
+        [cmsStateKey as symbol]: createCmsState({ homeContent: initialHomeContent }),
       },
       stubs: {
         HeroSection: HeroSectionStub,
@@ -231,5 +233,31 @@ describe('HomeView', () => {
     expect(wrapper.find('.photos-stub').attributes('data-title')).toBe('Photos')
     expect(wrapper.find('.contact-stub').attributes('data-title')).toBe('Contact')
     expect(wrapper.find('.footer-stub').text()).toContain('Galen Green')
+  })
+
+  it('retries on the client when hydrated content contains an error state', async () => {
+    apiMocks.globals.getAbout.mockResolvedValueOnce({ id: 'about-2' })
+    apiMocks.projects.getFeatured.mockResolvedValueOnce([{ id: 'project-2' }])
+    apiMocks.blogPosts.getRecent.mockResolvedValueOnce([{ id: 'post-2' }])
+    apiMocks.photos.getAll.mockResolvedValueOnce([{ id: 'photo-2' }])
+    apiMocks.github.getStats.mockResolvedValueOnce({ totalContributions: 25 })
+
+    const wrapper = mountHomeView({
+      about: null,
+      projects: [],
+      blogPosts: [],
+      photos: [],
+      githubStats: null,
+      error: 'Failed to load content. Please try again later.',
+    })
+
+    await flushPromises()
+    await nextTick()
+
+    expect(apiMocks.globals.getAbout).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('.projects-stub').attributes('data-count')).toBe('1')
+    expect(wrapper.find('.blog-stub').attributes('data-count')).toBe('1')
+    expect(wrapper.find('.photos-stub').attributes('data-count')).toBe('1')
+    expect(wrapper.find('.page-error').exists()).toBe(false)
   })
 })

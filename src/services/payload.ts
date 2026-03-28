@@ -8,14 +8,17 @@ import type {
   PaginatedResponse,
 } from '@/types'
 
-// API base URL - always use relative URLs (Vite proxy in dev, nginx in prod)
-const API_URL = ''
+const CMS_ORIGIN = import.meta.env.SSR
+  ? (import.meta.env.VITE_PAYLOAD_URL || 'http://localhost:3000').replace(/\/$/, '')
+  : ''
+
+const apiUrl = (endpoint: string) => `${CMS_ORIGIN}/api${endpoint}`
 
 /**
  * Generic fetch wrapper with error handling
  */
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = `${API_URL}/api${endpoint}`
+  const url = apiUrl(endpoint)
 
   try {
     const response = await fetch(url, {
@@ -147,7 +150,7 @@ export const contact = {
  */
 export const github = {
   async getStats(): Promise<GitHubStats> {
-    const response = await fetch('/api/github-stats')
+    const response = await fetch(apiUrl('/github-stats'))
     if (!response.ok) {
       throw new Error('Failed to fetch GitHub stats')
     }
@@ -155,7 +158,7 @@ export const github = {
   },
 
   async refreshStats(): Promise<GitHubStats> {
-    const response = await fetch('/api/github-stats', {
+    const response = await fetch(apiUrl('/github-stats'), {
       method: 'POST',
     })
     if (!response.ok) {
