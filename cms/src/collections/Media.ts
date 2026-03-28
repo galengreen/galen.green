@@ -2,6 +2,7 @@ import type { CollectionConfig } from 'payload'
 import exifr from 'exifr'
 import { readFile } from 'fs/promises'
 import { isAuthenticated } from '../access/isAuthenticated'
+import { generateImageSizes } from '../lib/mediaImageSizes'
 import { regenerateMedia } from '../lib/regenerateMedia'
 
 // Helper to convert filename to readable title
@@ -15,76 +16,6 @@ const filenameToTitle = (filename: string): string => {
     .replace(/([a-z])([A-Z])/g, '$1 $2')
     .replace(/\s+/g, ' ')
     .trim()
-}
-
-// Responsive image short-side targets
-const IMAGE_SHORT_SIDES = {
-  xs: 320,
-  sm: 480,
-  md: 768,
-  lg: 1024,
-  xl: 1400,
-  xxl: 1920,
-} as const
-
-const FULL_SIZE_TARGET = 999999
-
-// Generate image size config for a given short-side target and format
-const createResponsiveImageSize = (
-  name: string,
-  shortSide: number,
-  format: 'webp' | 'avif',
-  quality: number,
-) => ({
-  name: format === 'webp' ? name : `${name}-avif`,
-  width: shortSide,
-  height: shortSide,
-  fit: 'outside' as const,
-  position: 'centre' as const,
-  withoutEnlargement: true,
-  formatOptions: {
-    format,
-    options: { quality },
-  },
-})
-
-const createFullImageSize = (format: 'webp' | 'avif', quality: number) => ({
-  name: format === 'webp' ? 'full' : 'full-avif',
-  width: FULL_SIZE_TARGET,
-  height: FULL_SIZE_TARGET,
-  fit: 'inside' as const,
-  position: 'centre' as const,
-  withoutEnlargement: true,
-  formatOptions: {
-    format,
-    options: { quality },
-  },
-  admin: {
-    disableGroupBy: true,
-    disableListColumn: true,
-    disableListFilter: true,
-  },
-})
-
-// Generate all responsive sizes for both formats
-const generateImageSizes = () => {
-  const sizes: Array<
-    ReturnType<typeof createResponsiveImageSize> | ReturnType<typeof createFullImageSize>
-  > = []
-
-  // WebP sizes (quality 85)
-  for (const [name, shortSide] of Object.entries(IMAGE_SHORT_SIDES)) {
-    sizes.push(createResponsiveImageSize(name, shortSide, 'webp', 85))
-  }
-  sizes.push(createFullImageSize('webp', 85))
-
-  // AVIF sizes (quality 70 - AVIF achieves similar visual quality at lower values)
-  for (const [name, shortSide] of Object.entries(IMAGE_SHORT_SIDES)) {
-    sizes.push(createResponsiveImageSize(name, shortSide, 'avif', 70))
-  }
-  sizes.push(createFullImageSize('avif', 70))
-
-  return sizes
 }
 
 export const Media: CollectionConfig = {
