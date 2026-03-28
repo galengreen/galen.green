@@ -9,7 +9,7 @@ export const Photos: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'title',
-    defaultColumns: ['title', 'date', 'featured'],
+    defaultColumns: ['image', 'title', 'date', 'featured'],
     components: {
       beforeList: ['@/components/BulkCreatePhotos#BulkCreatePhotos'],
     },
