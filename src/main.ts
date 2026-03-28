@@ -1,5 +1,4 @@
 import { ViteSSG } from 'vite-ssg'
-import VueMatomo from 'vue-matomo'
 
 // Font Awesome
 import { library } from '@fortawesome/fontawesome-svg-core'
@@ -25,6 +24,7 @@ import {
 
 import App from './App.vue'
 import { routes } from './router'
+import { cmsStateKey, createCmsState, type CmsState } from '@/composables/useCmsState'
 import { scrollToHash, scrollToTop } from '@/utils/scroll'
 import { useTheme } from '@/composables/useTheme'
 
@@ -70,7 +70,19 @@ export const createApp = ViteSSG(
       return { top: 0 }
     },
   },
-  ({ app, router, isClient }) => {
+  ({ app, router, isClient, initialState }) => {
+    const shouldDisableSsgState =
+      isClient &&
+      typeof window !== 'undefined' &&
+      Boolean((window as Window & { __DISABLE_SSG_STATE__?: boolean }).__DISABLE_SSG_STATE__)
+
+    const cmsState = createCmsState(
+      shouldDisableSsgState ? undefined : (initialState.cms as CmsState | undefined),
+    )
+
+    initialState.cms = cmsState
+    app.provide(cmsStateKey, cmsState)
+
     // Register Font Awesome component globally
     app.component('FontAwesomeIcon', FontAwesomeIcon)
 
@@ -83,13 +95,15 @@ export const createApp = ViteSSG(
       // Matomo Analytics
       const matomoUrl = import.meta.env.VITE_MATOMO_URL
       if (matomoUrl) {
-        app.use(VueMatomo, {
-          host: matomoUrl,
-          siteId: 1,
-          router,
-          trackerFileName: 'matomo',
-          enableLinkTracking: true,
-          trackInitialView: true,
+        void import('vue-matomo').then(({ default: VueMatomo }) => {
+          app.use(VueMatomo, {
+            host: matomoUrl,
+            siteId: 1,
+            router,
+            trackerFileName: 'matomo',
+            enableLinkTracking: true,
+            trackInitialView: true,
+          })
         })
       }
 

@@ -1,15 +1,17 @@
 <script setup lang="ts">
-import { toRef } from 'vue'
+import { toRef, useTemplateRef } from 'vue'
 import { IconClose } from '@/components/icons'
 import { useLightbox } from '@/composables/useLightbox'
 
 const props = withDefaults(
   defineProps<{
     open: boolean
+    label?: string
     /** Skip keyboard handling if parent handles it (e.g., with useGalleryNavigation) */
     skipKeyboardHandling?: boolean
   }>(),
   {
+    label: 'Dialog',
     open: false,
     skipKeyboardHandling: false,
   },
@@ -23,7 +25,12 @@ function close() {
   emit('close')
 }
 
+const overlayRef = useTemplateRef<HTMLDivElement>('overlay')
+const closeButtonRef = useTemplateRef<HTMLButtonElement>('closeButton')
+
 const { handleBackdropClick } = useLightbox(toRef(props, 'open'), {
+  containerRef: overlayRef,
+  initialFocusRef: closeButtonRef,
   onClose: close,
   skipKeyboardHandling: props.skipKeyboardHandling,
 })
@@ -32,9 +39,23 @@ const { handleBackdropClick } = useLightbox(toRef(props, 'open'), {
 <template>
   <Teleport to="body">
     <Transition name="scale-fade">
-      <div v-if="open" class="lightbox-overlay" @click="handleBackdropClick">
+      <div
+        v-if="open"
+        ref="overlay"
+        class="lightbox-overlay"
+        role="dialog"
+        aria-modal="true"
+        :aria-label="label"
+        tabindex="-1"
+        @click="handleBackdropClick"
+      >
         <!-- Close button -->
-        <button class="lightbox-btn lightbox-close" aria-label="Close" @click="close">
+        <button
+          ref="closeButton"
+          class="lightbox-btn lightbox-close"
+          aria-label="Close"
+          @click="close"
+        >
           <IconClose />
         </button>
 

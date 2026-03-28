@@ -39,7 +39,9 @@ const getContributionLevel = (count: number): number => {
 
 // Format the weeks data for display
 const displayWeeks = computed(() => {
-  return props.contributionGraph.map((week) => ({
+  const weeks = Array.isArray(props.contributionGraph) ? props.contributionGraph : []
+
+  return weeks.map((week) => ({
     days: week.contributionDays.map((day) => ({
       date: day.date,
       count: day.contributionCount,

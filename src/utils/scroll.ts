@@ -25,7 +25,11 @@ export const scrollToHash = (
   options: { offset?: number; behavior?: ScrollBehavior } = {},
 ) => {
   if (!hash || typeof document === 'undefined') return false
-  const element = document.querySelector(hash)
+
+  const match = hash.match(/^#([^/]+)/)
+  if (!match?.[1]) return false
+
+  const element = document.getElementById(decodeURIComponent(match[1]))
   if (!element) return false
 
   return scrollToElement(element, options)

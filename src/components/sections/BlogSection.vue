@@ -57,7 +57,7 @@ const formatDateLong = (dateString: string) => {
 
     <EmptyState v-else message="Blog posts coming soon..." />
 
-    <ContentLightbox :open="!!selectedPost" @close="closePost">
+    <ContentLightbox :open="!!selectedPost" :title="selectedPost?.title" @close="closePost">
       <template v-if="selectedPost">
         <ResponsiveImage
           v-if="selectedPost.coverImage"

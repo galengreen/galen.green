@@ -16,14 +16,21 @@ const IMAGE_SIZE_WIDTHS: Record<ImageSizeName, number> = {
   lg: 1024,
   xl: 1400,
   xxl: 1920,
-  // Legacy sizes
-  thumbnail: 400,
-  medium: 800,
-  large: 1400,
+  full: 0,
 }
 
 // Ordered responsive sizes for srcset (smallest to largest)
 const RESPONSIVE_SIZES: ImageSizeName[] = ['xs', 'sm', 'md', 'lg', 'xl', 'xxl']
+const WEBP_SIZES: ImageSizeName[] = [...RESPONSIVE_SIZES, 'full']
+const AVIF_SIZES: ImageSizeNameAvif[] = [
+  'xs-avif',
+  'sm-avif',
+  'md-avif',
+  'lg-avif',
+  'xl-avif',
+  'xxl-avif',
+  'full-avif',
+]
 
 // Map base size to AVIF size name
 const toAvifSize = (size: ImageSizeName): ImageSizeNameAvif | null => {
@@ -34,8 +41,32 @@ const toAvifSize = (size: ImageSizeName): ImageSizeNameAvif | null => {
     lg: 'lg-avif',
     xl: 'xl-avif',
     xxl: 'xxl-avif',
+    full: 'full-avif',
   }
   return avifSizes[size] || null
+}
+
+function getSizeWidth(
+  media: Media | undefined,
+  size: ImageSizeName,
+  sizeData?: { width?: number },
+): number {
+  return sizeData?.width || (size === 'full' ? media?.width || 0 : IMAGE_SIZE_WIDTHS[size])
+}
+
+function appendSrcsetPart(
+  srcsetParts: string[],
+  seen: Set<string>,
+  url: string,
+  width: number,
+): void {
+  if (!url || !width) return
+
+  const key = `${url}|${width}`
+  if (seen.has(key)) return
+
+  seen.add(key)
+  srcsetParts.push(`${url} ${width}w`)
 }
 
 /**
@@ -82,19 +113,27 @@ export function getImageSrcset(
   if (!media?.sizes) return ''
 
   const srcsetParts: string[] = []
+  const seen = new Set<string>()
 
   for (const size of sizes) {
     const sizeData = media.sizes[size]
     if (sizeData?.url) {
       const url = toRelativeUrl(sizeData.url)
-      const width = sizeData.width || IMAGE_SIZE_WIDTHS[size]
-      srcsetParts.push(`${url} ${width}w`)
+      const width = getSizeWidth(media, size, sizeData)
+      appendSrcsetPart(srcsetParts, seen, url, width)
     }
   }
 
-  // Add original as fallback for larger screens if no xxl
-  if (!sizes.includes('xxl') && media.url) {
-    srcsetParts.push(`${toRelativeUrl(media.url)} ${media.width}w`)
+  const fullSize = media.sizes.full
+  if (fullSize?.url) {
+    appendSrcsetPart(
+      srcsetParts,
+      seen,
+      toRelativeUrl(fullSize.url),
+      getSizeWidth(media, 'full', fullSize),
+    )
+  } else if (media.url) {
+    appendSrcsetPart(srcsetParts, seen, toRelativeUrl(media.url), media.width)
   }
 
   return srcsetParts.join(', ')
@@ -113,6 +152,7 @@ export function getImageSrcsetAvif(
   if (!media?.sizes) return ''
 
   const srcsetParts: string[] = []
+  const seen = new Set<string>()
 
   for (const size of sizes) {
     const avifSize = toAvifSize(size)
@@ -121,12 +161,56 @@ export function getImageSrcsetAvif(
     const sizeData = media.sizes[avifSize]
     if (sizeData?.url) {
       const url = toRelativeUrl(sizeData.url)
-      const width = sizeData.width || IMAGE_SIZE_WIDTHS[size]
-      srcsetParts.push(`${url} ${width}w`)
+      const width = getSizeWidth(media, size, sizeData)
+      appendSrcsetPart(srcsetParts, seen, url, width)
     }
   }
 
+  const fullAvif = media.sizes['full-avif']
+  if (fullAvif?.url) {
+    appendSrcsetPart(srcsetParts, seen, toRelativeUrl(fullAvif.url), fullAvif.width || media.width)
+  }
+
   return srcsetParts.join(', ')
+}
+
+export function getBestImageUrlForWidth(media: Media | undefined, targetWidth: number): string {
+  if (!media) return ''
+
+  return getBestImageUrlForWidthAndFormat(media, targetWidth, 'webp')
+}
+
+export function getBestImageUrlForWidthAndFormat(
+  media: Media | undefined,
+  targetWidth: number,
+  format: 'webp' | 'avif',
+): string {
+  if (!media) return ''
+
+  const availableSizes = (format === 'avif' ? AVIF_SIZES : WEBP_SIZES)
+    .map((size) => {
+      const sizeData = media.sizes?.[size]
+      if (!sizeData?.url) return null
+
+      const width =
+        size.endsWith('-avif') && size !== 'full-avif'
+          ? getSizeWidth(media, size.replace(/-avif$/, '') as ImageSizeName, sizeData)
+          : size === 'full-avif'
+            ? sizeData.width || media.width
+            : getSizeWidth(media, size as ImageSizeName, sizeData)
+
+      return {
+        url: toRelativeUrl(sizeData.url),
+        width,
+      }
+    })
+    .filter((entry): entry is { url: string; width: number } => Boolean(entry?.url && entry.width))
+    .sort((a, b) => a.width - b.width)
+
+  const bestMatch = availableSizes.find((entry) => entry.width >= targetWidth)
+  if (bestMatch) return bestMatch.url
+
+  return availableSizes[availableSizes.length - 1]?.url || toRelativeUrl(media.url || '')
 }
 
 /**
@@ -169,23 +253,23 @@ export type ImageSizesPreset = keyof typeof imageSizesPresets
 export function getAllImageUrls(media: Media | undefined): string[] {
   if (!media) return []
 
-  const urls: string[] = []
+  const urls = new Set<string>()
 
   // Add all size URLs
   if (media.sizes) {
     for (const size of Object.values(media.sizes)) {
       if (size?.url) {
-        urls.push(toRelativeUrl(size.url))
+        urls.add(toRelativeUrl(size.url))
       }
     }
   }
 
   // Add original URL
   if (media.url) {
-    urls.push(toRelativeUrl(media.url))
+    urls.add(toRelativeUrl(media.url))
   }
 
-  return urls
+  return Array.from(urls)
 }
 
 export interface FormatDateOptions {
@@ -223,6 +307,8 @@ export function useMedia() {
     getImageSrcset,
     getImageSrcsetAvif,
     getImageSrcsets,
+    getBestImageUrlForWidth,
+    getBestImageUrlForWidthAndFormat,
     getAllImageUrls,
     imageSizesPresets,
     formatDate,

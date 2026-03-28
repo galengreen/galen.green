@@ -131,6 +131,34 @@ test.describe('Blog', () => {
       await blogPostPage.clickErrorGoBack()
       await expect(page).toHaveURL(/#blog/)
     })
+
+    test('direct blog deep links do not trigger runtime selector errors', async ({
+      page,
+      mockApi,
+    }) => {
+      const blogPostPage = new BlogPostPage(page)
+      const errors: string[] = []
+
+      page.on('pageerror', (error) => {
+        errors.push(error.message)
+      })
+
+      page.on('console', (message) => {
+        if (message.type() === 'error') {
+          errors.push(message.text())
+        }
+      })
+
+      const post = mockApi.mockData.blogPosts.docs[0]
+      await blogPostPage.goto(post.slug)
+      await blogPostPage.waitForContent()
+
+      expect(errors).not.toEqual(
+        expect.arrayContaining([
+          expect.stringContaining("Failed to execute 'querySelector' on 'Document'"),
+        ]),
+      )
+    })
   })
 
   test.describe('Blog Post Content', () => {

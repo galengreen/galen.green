@@ -22,6 +22,9 @@ export default defineConfigWithVueTs(
     '**/coverage/**',
     '**/cms/**',
     '**/node_modules/**',
+    '**/playwright-report/**',
+    '**/test-results/**',
+    '**/.vite-ssg-temp/**',
   ]),
 
   ...pluginVue.configs['flat/essential'],

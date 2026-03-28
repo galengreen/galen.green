@@ -63,7 +63,7 @@ watch(
 </script>
 
 <template>
-  <BaseLightbox :open="open" skip-keyboard-handling @close="close">
+  <BaseLightbox :open="open" label="Photo viewer" skip-keyboard-handling @close="close">
     <template #buttons>
       <!-- Previous button -->
       <button

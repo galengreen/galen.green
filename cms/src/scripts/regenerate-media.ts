@@ -1,7 +1,7 @@
 /**
  * Media Regeneration Script
  *
- * Regenerates all existing media files with the new image sizes and WebP format.
+ * Regenerates all existing media files with the current responsive WebP / AVIF sizes.
  * This script should be run after updating the Media collection config.
  *
  * Usage:
@@ -80,7 +80,9 @@ async function regenerateMedia() {
           continue
         }
 
-        // Get the original file path
+        // Get the currently stored source file path for this media document.
+        // Note: media uploaded before original preservation was introduced can only
+        // be regenerated from the file currently stored on disk.
         const mediaDir = process.env.MEDIA_DIR || path.join(process.cwd(), '..', 'media')
         const filePath = path.join(mediaDir, media.filename)
 

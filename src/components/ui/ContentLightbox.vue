@@ -12,7 +12,7 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <BaseLightbox :open="open" @close="emit('close')">
+  <BaseLightbox :open="open" :label="title || 'Content details'" @close="emit('close')">
     <!-- Scrollable content area -->
     <div class="content-lightbox-scroll" @click.stop>
       <div class="content-lightbox-inner">

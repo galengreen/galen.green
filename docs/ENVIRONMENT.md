@@ -8,7 +8,7 @@ This document lists all environment variables used in the galen.green infrastruc
 flowchart TB
     subgraph Frontend["Frontend (Vite Dev)"]
         FE_ENV["CMS_URL<br/>MATOMO_URL<br/>(runtime, for Vite proxy)"]
-        FE_BUILD["VITE_MATOMO_URL<br/>(build-time)"]
+        FE_BUILD["VITE_MATOMO_URL<br/>VITE_PAYLOAD_URL<br/>(build-time / SSG)"]
     end
 
     subgraph CMS["CMS (Payload/Next.js)"]
@@ -28,13 +28,14 @@ flowchart TB
 
 ### galen-frontend
 
-No environment variables required. The nginx config and static assets are baked into the image.
+No runtime environment variables are required. The nginx config and static assets are baked into the image.
 
-**Build-time variable** (set during `npm run build`):
+**Build-time variables** (set during `npm run build`):
 
-| Variable          | Required | Example Value                   |
-| ----------------- | -------- | ------------------------------- |
-| `VITE_MATOMO_URL` | No       | `https://analytics.galen.green` |
+| Variable           | Required | Example Value                   |
+| ------------------ | -------- | ------------------------------- |
+| `VITE_MATOMO_URL`  | No       | `https://analytics.galen.green` |
+| `VITE_PAYLOAD_URL` | Yes      | `https://galen.green`           |
 
 ### galen-cms
 
@@ -183,6 +184,11 @@ The `MATOMO_URL` environment variable controls where Vite proxies `/analytics` r
 The `VITE_MATOMO_URL` variable is baked into the frontend at build time for analytics tracking:
 
 - **Production**: `https://analytics.galen.green`
+
+The `VITE_PAYLOAD_URL` variable is baked into the frontend build and used by Vite SSG / SSR fetches to reach the CMS during prerendering:
+
+- **Production**: `https://galen.green`
+- **Development with local CMS**: `http://localhost:3000`
 
 ### CMS (cms/.env)
 

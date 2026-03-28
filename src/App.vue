@@ -1,24 +1,19 @@
 <script setup lang="ts">
-import { ref, provide, computed } from 'vue'
+import { computed, provide } from 'vue'
 import { RouterView } from 'vue-router'
 import ViewportFrame from '@/components/layout/ViewportFrame.vue'
 import NavBar from '@/components/layout/NavBar.vue'
 import LoadingScreen from '@/components/ui/LoadingScreen.vue'
 import { useImagePreloader } from '@/composables/useImagePreloader'
-import { api } from '@/services/payload'
-import { getImageUrl } from '@/composables/useMedia'
-import type { Media, SiteSettings } from '@/types'
+import { useSiteSettingsData } from '@/composables/useSiteSettingsData'
+import { getBestImageUrlForWidth, getBestImageUrlForWidthAndFormat } from '@/composables/useMedia'
+import type { Media } from '@/types'
 
 const { criticalImagesLoaded, preloadCritical } = useImagePreloader()
-
-// Site settings (shared with child components)
-const siteSettings = ref<SiteSettings | null>(null)
-
-// Loading messages from CMS
-const loadingMessages = computed(() => siteSettings.value?.loadingMessages || [])
+const { siteSettings, loadingMessages, loadSiteSettings } = useSiteSettingsData()
 
 // Show loading screen until critical images are loaded
-const showLoading = computed(() => !criticalImagesLoaded.value)
+const showLoading = computed(() => !import.meta.env.SSR && !criticalImagesLoaded.value)
 
 /**
  * Get the best image URL to preload based on viewport width
@@ -26,57 +21,37 @@ const showLoading = computed(() => !criticalImagesLoaded.value)
  */
 function getBestImageUrl(media: Media): string {
   if (typeof window === 'undefined') {
-    return getImageUrl(media, 'xl')
+    return getBestImageUrlForWidth(media, 1400)
   }
 
   const width = window.innerWidth
   const dpr = window.devicePixelRatio || 1
   const targetWidth = width * dpr
 
-  // Check AVIF first (browser prefers it), then WebP
-  const sizes = ['xxl', 'xl', 'lg', 'md', 'sm', 'xs'] as const
-  const sizeWidths = { xxl: 1920, xl: 1400, lg: 1024, md: 768, sm: 480, xs: 320 }
-
-  // Find the smallest size that covers the target width
-  let bestSize: (typeof sizes)[number] = 'xl'
-  for (const size of [...sizes].reverse()) {
-    if (sizeWidths[size] >= targetWidth) {
-      bestSize = size
-      break
-    }
+  const avifUrl = getBestImageUrlForWidthAndFormat(media, targetWidth, 'avif')
+  if (avifUrl) {
+    return avifUrl
   }
 
-  // Try AVIF first (what modern browsers will choose)
-  const avifSize = `${bestSize}-avif` as const
-  const avifUrl = getImageUrl(media, avifSize)
-  if (avifUrl) return avifUrl
-
-  // Fall back to WebP
-  return getImageUrl(media, bestSize)
+  return getBestImageUrlForWidth(media, targetWidth)
 }
 
-// Fetch site settings immediately (not in onMounted) and start preloading hero images
-;(async () => {
-  try {
-    const settings = await api.globals.getSiteSettings()
-    siteSettings.value = settings
+const preloadHeroImages = async () => {
+  const settings = await loadSiteSettings()
+  const heroUrls: string[] = []
 
-    // Start preloading hero images immediately
-    // Use the same URL the browser will select based on viewport/DPR
-    const heroUrls: string[] = []
-    if (settings.heroBackground?.light) {
-      heroUrls.push(getBestImageUrl(settings.heroBackground.light))
-    }
-    if (settings.heroBackground?.dark) {
-      heroUrls.push(getBestImageUrl(settings.heroBackground.dark))
-    }
-    // Always call preloadCritical - it handles empty arrays correctly
-    preloadCritical(heroUrls)
-  } catch {
-    // API failed - mark images as loaded so the page can render
-    preloadCritical([])
+  if (settings?.heroBackground?.light) {
+    heroUrls.push(getBestImageUrl(settings.heroBackground.light))
   }
-})()
+
+  if (settings?.heroBackground?.dark) {
+    heroUrls.push(getBestImageUrl(settings.heroBackground.dark))
+  }
+
+  await preloadCritical(heroUrls)
+}
+
+void preloadHeroImages()
 
 // Provide site settings and preloader state to child components
 provide('siteSettings', siteSettings)
