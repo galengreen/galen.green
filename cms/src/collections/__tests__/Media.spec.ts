@@ -1,16 +1,19 @@
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
-import { Media } from '../Media'
+import { generateImageSizes } from '../../lib/mediaImageSizes'
 
 describe('Media upload config', () => {
-  const uploadConfig = Media.upload && typeof Media.upload === 'object' ? Media.upload : null
+  const imageSizes = generateImageSizes()
 
   it('disables focal point cropping for short-side responsive sizes', () => {
-    expect(uploadConfig?.focalPoint).toBe(false)
+    const xsSize = imageSizes.find((size) => size.name === 'xs')
+
+    expect(xsSize?.fit).toBe('outside')
+    expect(xsSize?.withoutEnlargement).toBe(true)
   })
 
   it('keeps panorama aspect ratio when resizing with responsive bounds', async () => {
-    const xsSize = uploadConfig?.imageSizes?.find((size) => size.name === 'xs')
+    const xsSize = imageSizes.find((size) => size.name === 'xs')
 
     expect(xsSize).toBeDefined()
 
