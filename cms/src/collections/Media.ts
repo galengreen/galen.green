@@ -2,7 +2,7 @@ import type { CollectionConfig } from 'payload'
 import exifr from 'exifr'
 import { readFile } from 'fs/promises'
 import { isAuthenticated } from '../access/isAuthenticated'
-import { generateImageSizes } from '../lib/mediaImageSizes'
+import { MEDIA_PROCESSING_TASK, MEDIA_PROCESSING_QUEUE } from '../lib/processMedia'
 import { regenerateMedia } from '../lib/regenerateMedia'
 
 // Helper to convert filename to readable title
@@ -43,7 +43,7 @@ export const Media: CollectionConfig = {
         })
 
         return Response.json({
-          message: `Regenerated ${result.success} media items`,
+          message: `Queued ${result.success} media items for regeneration`,
           ...result,
         })
       },
@@ -59,11 +59,11 @@ export const Media: CollectionConfig = {
     staticDir: process.env.MEDIA_DIR || '../media',
     mimeTypes: ['image/*'],
     filesRequiredOnCreate: false,
-    focalPoint: false,
-    // Preserve the uploaded original file exactly as provided.
-    // Generated derivatives are defined separately in imageSizes.
-    imageSizes: generateImageSizes(),
-    adminThumbnail: 'xs',
+    crop: false,
+    adminThumbnail: ({ doc }) => {
+      const mediaDoc = doc as { sizes?: { xs?: { url?: string | null } }; url?: string | null }
+      return mediaDoc.sizes?.xs?.url || mediaDoc.url || null
+    },
   },
   hooks: {
     // Use beforeOperation to extract EXIF before image processing converts to WebP
@@ -121,8 +121,28 @@ export const Media: CollectionConfig = {
           if (req.context.exifDateTaken && typeof req.context.exifDateTaken === 'string') {
             data.dateTaken = req.context.exifDateTaken
           }
+
+          data.processingError = null
+          data.processingStatus = 'queued'
+          data.processedAt = null
+          data.sizes = {}
         }
         return data
+      },
+    ],
+    afterChange: [
+      async ({ doc, req }) => {
+        if (!req.file) return doc
+
+        await req.payload.jobs.queue({
+          input: {
+            mediaId: String(doc.id),
+          },
+          queue: MEDIA_PROCESSING_QUEUE,
+          task: MEDIA_PROCESSING_TASK,
+        })
+
+        return doc
       },
     ],
   },
@@ -145,6 +165,44 @@ export const Media: CollectionConfig = {
           pickerAppearance: 'dayAndTime',
           displayFormat: 'd MMM yyyy HH:mm',
         },
+        readOnly: true,
+      },
+    },
+    {
+      name: 'processingStatus',
+      type: 'select',
+      defaultValue: 'ready',
+      options: [
+        { label: 'Queued', value: 'queued' },
+        { label: 'Processing', value: 'processing' },
+        { label: 'Ready', value: 'ready' },
+        { label: 'Failed', value: 'failed' },
+      ],
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'processedAt',
+      type: 'date',
+      admin: {
+        position: 'sidebar',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'processingError',
+      type: 'textarea',
+      admin: {
+        condition: (_, siblingData) => siblingData?.processingStatus === 'failed',
+        readOnly: true,
+      },
+    },
+    {
+      name: 'sizes',
+      type: 'json',
+      admin: {
         readOnly: true,
       },
     },

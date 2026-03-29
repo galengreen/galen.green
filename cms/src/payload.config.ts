@@ -9,6 +9,8 @@ import sharp from 'sharp'
 
 import { Media, Photos, Projects, BlogPosts, ContactSubmissions, Users } from './collections'
 import { About, GitHubStats, SiteSettings } from './globals'
+import { processMediaUploadTask } from './jobs/processMediaUpload'
+import { MEDIA_PROCESSING_QUEUE } from './lib/processMedia'
 
 const filename = fileURLToPath(import.meta.url)
 const dirname = path.dirname(filename)
@@ -93,6 +95,16 @@ export default buildConfig({
   db: mongooseAdapter({
     url: process.env.MONGODB_URI || 'mongodb://localhost:27017/galen-green',
   }),
+  jobs: {
+    tasks: [processMediaUploadTask],
+    autoRun: [
+      {
+        cron: '* * * * *',
+        limit: 10,
+        queue: MEDIA_PROCESSING_QUEUE,
+      },
+    ],
+  },
   sharp,
   cors: process.env.NODE_ENV === 'production' ? productionOrigins : developmentOrigins,
   csrf: process.env.NODE_ENV === 'production' ? productionOrigins : developmentOrigins,

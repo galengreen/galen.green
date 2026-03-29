@@ -1,7 +1,8 @@
 /**
  * Media Regeneration Script
  *
- * Regenerates all existing media files with the current responsive WebP / AVIF sizes.
+ * Queues and optionally runs regeneration of all existing media files with the current
+ * responsive WebP / AVIF sizes.
  * This script should be run after updating the Media collection config.
  *
  * Usage:
@@ -43,6 +44,7 @@ async function runRegenerateMedia() {
     dryRun,
     logger: console.log,
     payload,
+    runJobs: !dryRun,
   })
 
   console.log('')

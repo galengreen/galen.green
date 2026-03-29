@@ -11,16 +11,16 @@ flowchart LR
     subgraph Development
         Local[docker-compose.yml]
     end
-    
+
     subgraph Production
         Apps[TrueNAS Apps UI]
     end
-    
+
     subgraph CI/CD
         GH[GitHub Actions]
         GHCR[Container Registry]
     end
-    
+
     GH -->|Build & Push| GHCR
     GHCR -->|Pull| Apps
     Local -->|Build from source| Local
@@ -36,6 +36,7 @@ flowchart LR
 4. Restart the apps in TrueNAS to pull the new images
 
 **To trigger an update**:
+
 1. Go to TrueNAS Apps UI
 2. Click on the app (e.g., `galen-frontend`)
 3. Click "Restart" - this pulls the latest image (Pull Policy: Always)
@@ -44,55 +45,59 @@ flowchart LR
 
 #### galen-frontend
 
-| Setting            | Value                                      |
-| ------------------ | ------------------------------------------ |
-| Image Repository   | `ghcr.io/galengreen/galen-frontend`        |
-| Image Tag          | `latest`                                   |
-| Pull Policy        | Always                                     |
-| Host Port          | 8081                                       |
-| Container Port     | 80                                         |
-| Timezone           | Pacific/Auckland                           |
-| Restart Policy     | No                                         |
-| CPU Limit          | 2                                          |
-| Memory Limit       | 4096 MB                                    |
+| Setting          | Value                               |
+| ---------------- | ----------------------------------- |
+| Image Repository | `ghcr.io/galengreen/galen-frontend` |
+| Image Tag        | `latest`                            |
+| Pull Policy      | Always                              |
+| Host Port        | 8081                                |
+| Container Port   | 80                                  |
+| Timezone         | Pacific/Auckland                    |
+| Restart Policy   | No                                  |
+| CPU Limit        | 2                                   |
+| Memory Limit     | 4096 MB                             |
 
 No environment variables or storage required.
 
 #### galen-cms
 
-| Setting            | Value                                      |
-| ------------------ | ------------------------------------------ |
-| Image Repository   | `ghcr.io/galengreen/galen-cms`             |
-| Image Tag          | `latest`                                   |
-| Pull Policy        | Always                                     |
-| Host Port          | 3000                                       |
-| Container Port     | 3000                                       |
-| Timezone           | Pacific/Auckland                           |
-| Restart Policy     | Unless Stopped                             |
-| CPU Limit          | 2                                          |
-| Memory Limit       | 4096 MB                                    |
+| Setting          | Value                          |
+| ---------------- | ------------------------------ |
+| Image Repository | `ghcr.io/galengreen/galen-cms` |
+| Image Tag        | `latest`                       |
+| Pull Policy      | Always                         |
+| Host Port        | 3000                           |
+| Container Port   | 3000                           |
+| Timezone         | Pacific/Auckland               |
+| Restart Policy   | Unless Stopped                 |
+| CPU Limit        | 2                              |
+| Memory Limit     | 4096 MB                        |
 
 **Storage**:
-| Type      | Mount Path    | Host Path                              |
+| Type | Mount Path | Host Path |
 | --------- | ------------- | -------------------------------------- |
-| Host Path | `/app/media`  | `/mnt/GreenVault/galen.green/media`    |
+| Host Path | `/app/media` | `/mnt/GreenVault/galen.green/media` |
 
 **Environment Variables**: See [ENVIRONMENT.md](./ENVIRONMENT.md)
+
+**Operational Note**:
+
+- The CMS now runs Payload background jobs for media processing. Keep the CMS app running continuously so queued jobs can be picked up and completed.
 
 #### MongoDB
 
 Use the TrueNAS MongoDB app or a custom app with `mongo:7` image.
 
-| Setting            | Value                                      |
-| ------------------ | ------------------------------------------ |
-| Image              | `mongo:7`                                  |
-| Host Port          | 27017                                      |
-| Container Port     | 27017                                      |
+| Setting        | Value     |
+| -------------- | --------- |
+| Image          | `mongo:7` |
+| Host Port      | 27017     |
+| Container Port | 27017     |
 
 **Storage**:
-| Type      | Mount Path    | Host Path                              |
+| Type | Mount Path | Host Path |
 | --------- | ------------- | -------------------------------------- |
-| Host Path | `/data/db`    | `/mnt/GreenVault/galen.green/mongodb`  |
+| Host Path | `/data/db` | `/mnt/GreenVault/galen.green/mongodb` |
 
 ### Cloudflare Tunnel
 
@@ -103,6 +108,7 @@ https://galen.green → Cloudflare Tunnel → TrueNAS:8081 (frontend nginx)
 ```
 
 Configure in Cloudflare Zero Trust dashboard:
+
 - Public hostname: `galen.green`
 - Service: `http://localhost:8081` (or TrueNAS IP)
 
@@ -136,6 +142,7 @@ npm run dev
 ```
 
 The remote CMS must have `DEV_FRONTEND_URL` set to allow CORS from your local machine:
+
 ```
 DEV_FRONTEND_URL=http://localhost:5173,http://127.0.0.1:5173,http://100.89.52.22:5173
 ```
@@ -250,6 +257,7 @@ mongosh "mongodb://galengreen:<password>@localhost:27017/galen-green?authSource=
 1. Check if CMS container is running in TrueNAS Apps UI
 
 2. Verify CMS is accessible from frontend network:
+
    ```sh
    # SSH into TrueNAS
    curl http://172.16.0.1:3000/api/health
@@ -264,6 +272,7 @@ mongosh "mongodb://galengreen:<password>@localhost:27017/galen-green?authSource=
 1. Verify MongoDB is running in TrueNAS Apps UI
 
 2. Test connection:
+
    ```sh
    mongosh "mongodb://galengreen:<password>@172.16.0.1:27017/galen-green?authSource=admin"
    ```
@@ -279,6 +288,7 @@ mongosh "mongodb://galengreen:<password>@localhost:27017/galen-green?authSource=
 2. Check GitHub Actions completed successfully
 
 3. Manually pull to verify image exists:
+
    ```sh
    docker pull ghcr.io/galengreen/galen-frontend:latest
    ```
@@ -290,11 +300,19 @@ mongosh "mongodb://galengreen:<password>@localhost:27017/galen-green?authSource=
 1. Check storage mount in TrueNAS app config
 
 2. Verify host path exists:
+
    ```sh
    ls -la /mnt/GreenVault/galen.green/media
    ```
 
 3. Check permissions on the directory
+
+### Media Processing Stuck in Queued or Processing
+
+1. Confirm the CMS app is running and healthy
+2. Check CMS logs for Payload job errors
+3. Restart the CMS app if jobs are not being picked up
+4. Re-run media regeneration from the CMS admin if needed
 
 ### CORS Errors in Development
 
