@@ -1,6 +1,11 @@
 import type { TaskConfig } from 'payload'
 import { processMedia, MEDIA_PROCESSING_TASK } from '../lib/processMedia'
-import type { Media } from '../payload-types'
+
+interface MediaDocument {
+  filename?: string | null
+  id: string | number
+  sizes?: Record<string, { filename?: string | null } | null> | null
+}
 
 export const processMediaUploadTask: TaskConfig<any> = {
   slug: MEDIA_PROCESSING_TASK,
@@ -17,7 +22,7 @@ export const processMediaUploadTask: TaskConfig<any> = {
     const media = (await req.payload.findByID({
       collection: 'media',
       id: typedInput.mediaId,
-    })) as Media
+    })) as MediaDocument
 
     if (!media.filename) {
       await req.payload.update({
