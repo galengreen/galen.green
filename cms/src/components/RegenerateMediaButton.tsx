@@ -43,7 +43,7 @@ export const RegenerateMediaButton: React.FC = () => {
       }
 
       toast.success(
-        `Regenerated ${data.success ?? 0} of ${data.processed ?? 0} media items${
+        `Queued ${data.success ?? 0} of ${data.processed ?? 0} media items${
           data.failed ? ` (${data.failed} failed)` : ''
         }`,
       )
@@ -64,11 +64,11 @@ export const RegenerateMediaButton: React.FC = () => {
       <Drawer slug={DRAWER_SLUG} title="Regenerate All Media">
         <div style={{ padding: '1rem' }}>
           <p style={{ marginTop: 0 }}>
-            This will reprocess every media item using the current derivative settings. Existing
-            generated image sizes will be replaced.
+            This will queue every media item for reprocessing using the current derivative settings.
+            Existing generated image sizes will be replaced as each job completes.
           </p>
           <p>
-            This can take a while for large libraries, and older uploads will regenerate from the
+            The original files remain usable immediately. Older uploads will regenerate from the
             file currently stored on disk.
           </p>
           <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
@@ -76,7 +76,7 @@ export const RegenerateMediaButton: React.FC = () => {
               Cancel
             </Button>
             <Button size="small" onClick={handleRegenerate} disabled={isRegenerating}>
-              {isRegenerating ? 'Regenerating...' : 'Regenerate All Media'}
+              {isRegenerating ? 'Queueing...' : 'Queue Media Regeneration'}
             </Button>
           </div>
         </div>

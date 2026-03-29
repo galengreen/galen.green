@@ -1,9 +1,9 @@
 import sharp from 'sharp'
 import { describe, expect, it } from 'vitest'
-import { generateImageSizes } from '../../lib/mediaImageSizes'
+import { MEDIA_IMAGE_SIZE_DEFINITIONS } from '../../lib/mediaImageSizes'
 
 describe('Media upload config', () => {
-  const imageSizes = generateImageSizes()
+  const imageSizes = MEDIA_IMAGE_SIZE_DEFINITIONS
 
   it('disables focal point cropping for short-side responsive sizes', () => {
     const xsSize = imageSizes.find((size) => size.name === 'xs')

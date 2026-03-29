@@ -1,19 +1,21 @@
-import fs from 'fs'
-import path from 'path'
+import { MEDIA_PROCESSING_QUEUE, MEDIA_PROCESSING_TASK } from './processMedia'
 
 interface MediaDoc {
   id: string
   filename: string
-  mimeType: string
 }
 
 export interface RegenerateMediaOptions {
   batchSize?: number
   dryRun?: boolean
   logger?: (message: string) => void
-  mediaDir?: string
+  runJobs?: boolean
   payload: {
     find: (args: any) => Promise<{ docs: unknown[]; totalDocs: number }>
+    jobs: {
+      queue: (args: any) => Promise<unknown>
+      run?: (args: any) => Promise<unknown>
+    }
     update: (args: any) => Promise<unknown>
   }
 }
@@ -29,8 +31,8 @@ export async function regenerateMedia({
   batchSize = 5,
   dryRun = false,
   logger,
-  mediaDir,
   payload,
+  runJobs = false,
 }: RegenerateMediaOptions): Promise<RegenerateMediaResult> {
   logger?.('Fetching media documents...')
 
@@ -68,31 +70,24 @@ export async function regenerateMedia({
           continue
         }
 
-        const resolvedMediaDir =
-          mediaDir || process.env.MEDIA_DIR || path.join(process.cwd(), '..', 'media')
-        const filePath = path.join(resolvedMediaDir, media.filename)
-
-        if (!fs.existsSync(filePath)) {
-          logger?.(`  WARNING: Original file not found: ${filePath}`)
-          failed++
-          continue
-        }
-
-        const fileBuffer = fs.readFileSync(filePath)
-
         await payload.update({
           collection: 'media',
           id: media.id,
-          data: {},
-          file: {
-            data: fileBuffer,
-            name: media.filename,
-            mimetype: media.mimeType,
-            size: fileBuffer.length,
+          data: {
+            processingError: null,
+            processingStatus: 'queued',
           },
         })
 
-        logger?.('  Regenerated successfully')
+        await payload.jobs.queue({
+          input: {
+            mediaId: media.id,
+          },
+          queue: MEDIA_PROCESSING_QUEUE,
+          task: MEDIA_PROCESSING_TASK,
+        })
+
+        logger?.('  Queued for regeneration')
       } catch (error) {
         logger?.(`  ERROR: ${error instanceof Error ? error.message : 'Unknown error'}`)
         failed++
@@ -100,6 +95,17 @@ export async function regenerateMedia({
     }
 
     page++
+  }
+
+  if (!dryRun && runJobs && payload.jobs.run) {
+    logger?.('Running queued jobs...')
+    await payload.jobs.run({
+      limit: totalDocs,
+      overrideAccess: true,
+      queue: MEDIA_PROCESSING_QUEUE,
+      sequential: true,
+      silent: true,
+    })
   }
 
   return {

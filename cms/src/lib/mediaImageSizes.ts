@@ -1,3 +1,29 @@
+export type GeneratedImageFormat = 'webp' | 'avif'
+
+export interface GeneratedMediaSizeDefinition {
+  fit: 'inside' | 'outside'
+  format: GeneratedImageFormat
+  height: number
+  name:
+    | 'xs'
+    | 'sm'
+    | 'md'
+    | 'lg'
+    | 'xl'
+    | 'xxl'
+    | 'full'
+    | 'xs-avif'
+    | 'sm-avif'
+    | 'md-avif'
+    | 'lg-avif'
+    | 'xl-avif'
+    | 'xxl-avif'
+    | 'full-avif'
+  quality: number
+  withoutEnlargement: boolean
+  width: number
+}
+
 // Responsive image short-side targets
 export const IMAGE_SHORT_SIDES = {
   xs: 320,
@@ -10,58 +36,41 @@ export const IMAGE_SHORT_SIDES = {
 
 const FULL_SIZE_TARGET = 999999
 
-// Generate image size config for a given short-side target and format
-const createResponsiveImageSize = (
-  name: string,
+const createResponsiveSize = (
+  name: keyof typeof IMAGE_SHORT_SIDES,
   shortSide: number,
-  format: 'webp' | 'avif',
+  format: GeneratedImageFormat,
   quality: number,
-) => ({
-  name: format === 'webp' ? name : `${name}-avif`,
-  width: shortSide,
+): GeneratedMediaSizeDefinition => ({
+  fit: 'outside',
+  format,
   height: shortSide,
-  fit: 'outside' as const,
-  position: 'centre' as const,
+  name: format === 'webp' ? name : `${name}-avif`,
+  quality,
   withoutEnlargement: true,
-  formatOptions: {
-    format,
-    options: { quality },
-  },
+  width: shortSide,
 })
 
-const createFullImageSize = (format: 'webp' | 'avif', quality: number) => ({
-  name: format === 'webp' ? 'full' : 'full-avif',
-  width: FULL_SIZE_TARGET,
+const createFullSize = (
+  format: GeneratedImageFormat,
+  quality: number,
+): GeneratedMediaSizeDefinition => ({
+  fit: 'inside',
+  format,
   height: FULL_SIZE_TARGET,
-  fit: 'inside' as const,
-  position: 'centre' as const,
+  name: format === 'webp' ? 'full' : 'full-avif',
+  quality,
   withoutEnlargement: true,
-  formatOptions: {
-    format,
-    options: { quality },
-  },
-  admin: {
-    disableGroupBy: true,
-    disableListColumn: true,
-    disableListFilter: true,
-  },
+  width: FULL_SIZE_TARGET,
 })
 
-// Generate all responsive sizes for both formats
-export const generateImageSizes = () => {
-  const sizes: Array<
-    ReturnType<typeof createResponsiveImageSize> | ReturnType<typeof createFullImageSize>
-  > = []
-
-  for (const [name, shortSide] of Object.entries(IMAGE_SHORT_SIDES)) {
-    sizes.push(createResponsiveImageSize(name, shortSide, 'webp', 85))
-  }
-  sizes.push(createFullImageSize('webp', 85))
-
-  for (const [name, shortSide] of Object.entries(IMAGE_SHORT_SIDES)) {
-    sizes.push(createResponsiveImageSize(name, shortSide, 'avif', 70))
-  }
-  sizes.push(createFullImageSize('avif', 70))
-
-  return sizes
-}
+export const MEDIA_IMAGE_SIZE_DEFINITIONS: GeneratedMediaSizeDefinition[] = [
+  ...Object.entries(IMAGE_SHORT_SIDES).map(([name, shortSide]) =>
+    createResponsiveSize(name as keyof typeof IMAGE_SHORT_SIDES, shortSide, 'webp', 85),
+  ),
+  createFullSize('webp', 85),
+  ...Object.entries(IMAGE_SHORT_SIDES).map(([name, shortSide]) =>
+    createResponsiveSize(name as keyof typeof IMAGE_SHORT_SIDES, shortSide, 'avif', 70),
+  ),
+  createFullSize('avif', 70),
+]
