@@ -4,6 +4,9 @@ FROM node:22-alpine AS builder
 WORKDIR /app
 
 # Build arguments for Vite environment variables
+ARG VITE_PAYLOAD_URL
+ENV VITE_PAYLOAD_URL=${VITE_PAYLOAD_URL}
+
 ARG VITE_MATOMO_URL
 ENV VITE_MATOMO_URL=${VITE_MATOMO_URL}
 

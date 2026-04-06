@@ -9,4 +9,4 @@ Files:
 
 Current active task:
 
-- `cards/2026-03-26-site-bugfixes.md`
+- `cards/2026-04-07-homepage-prerender-cms-url.md`
