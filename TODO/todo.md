@@ -14,6 +14,8 @@
 
 - [2026-03-26-site-bugfixes](cards/2026-03-26-site-bugfixes.md)
 
+- [2026-04-07-remove-test-stack](cards/2026-04-07-remove-test-stack.md)
+
 ## Done
 
 %% kanban:settings

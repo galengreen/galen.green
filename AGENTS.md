@@ -17,7 +17,7 @@ Guidelines for AI coding agents working in this Vue 3 + Payload CMS codebase.
 
 ```
 src/
-├── components/   # Vue components (__tests__/, icons/, layout/, sections/, ui/)
+├── components/   # Vue components (icons/, layout/, sections/, ui/)
 ├── composables/  # Vue composables (useTheme, useMedia, useMasonry)
 ├── router/       # Vue Router config
 └── views/        # Page-level components
@@ -26,7 +26,7 @@ cms/src/
 └── globals/      # Payload globals (SiteSettings, About, GitHubStats)
 ```
 
-## Build/Lint/Test Commands
+## Build/Lint Commands
 
 ```sh
 # Frontend (root)
@@ -35,20 +35,12 @@ npm run build        # Type-check and build for production
 npm run type-check   # Run vue-tsc type checking
 npm run lint         # ESLint with auto-fix and cache
 npm run format       # Prettier format src/
-npm run test:unit                                    # Run all unit tests
-npm run test:unit -- src/components/__tests__/HelloWorld.spec.ts  # Single file
-npm run test:unit -- --grep "pattern"               # Tests matching pattern
 
 # CMS (cms directory)
 cd cms && npm run dev              # Start Payload CMS dev server
 npm run build            # Build for production
 npm run start            # Start production server
 npm run generate:types   # Generate Payload TypeScript types
-
-# E2E Tests (root)
-npm run test:e2e                        # Run all E2E tests
-npm run test:e2e -- e2e/vue.spec.ts     # Single test file
-npm run test:e2e -- --project=chromium  # Specific browser
 ```
 
 ## Code Style Guidelines
@@ -73,8 +65,6 @@ npm run test:e2e -- --project=chromium  # Specific browser
 | Components  | PascalCase                  | `RichText.vue`     |
 | Views       | PascalCase + View suffix    | `BlogPostView.vue` |
 | Composables | camelCase with `use` prefix | `useTheme.ts`      |
-| Unit tests  | `*.spec.ts` in `__tests__/` | `RichText.spec.ts` |
-| E2E tests   | `*.spec.ts` in `e2e/`       | `vue.spec.ts`      |
 | Collections | PascalCase                  | `BlogPosts.ts`     |
 
 ### Imports
@@ -101,35 +91,6 @@ Export `CollectionConfig` with PascalCase naming. Include labels, admin config, 
 
 Lazy-load routes with dynamic imports. Use named routes.
 
-### Testing
-
-#### Unit Tests (Vitest + Vue Test Utils)
-
-```ts
-import { describe, it, expect } from 'vitest'
-import { mount } from '@vue/test-utils'
-import RichText from '../RichText.vue'
-
-describe('RichText', () => {
-  it('renders content', () => {
-    const wrapper = mount(RichText, { props: { content: mockData } })
-    expect(wrapper.html()).toContain('<p>')
-  })
-})
-```
-
-#### E2E Tests (Playwright)
-
-```ts
-import { test, expect } from '@playwright/test'
-
-test('navigates to blog post', async ({ page }) => {
-  await page.goto('/')
-  await page.click('text=Blog')
-  await expect(page).toHaveURL(/#blog/)
-})
-```
-
 ### Error Handling
 
 - Use try/catch for async operations
@@ -140,5 +101,4 @@ test('navigates to blog post', async ({ page }) => {
 
 1. `npm run lint` - fix any linting errors
 2. `npm run type-check` - ensure no TypeScript errors
-3. `npm run test:unit` - all unit tests pass
-4. `npm run build` - production build succeeds
+3. `npm run build` - production build succeeds

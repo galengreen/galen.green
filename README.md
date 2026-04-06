@@ -98,8 +98,6 @@ CMS_URL=https://galen.green npm run dev
 | `npm run build`      | Build for production              |
 | `npm run lint`       | Lint with ESLint                  |
 | `npm run type-check` | Type check with vue-tsc           |
-| `npm run test:unit`  | Run unit tests (Vitest)           |
-| `npm run test:e2e`   | Run E2E tests (Playwright)        |
 
 ### CMS Commands
 
