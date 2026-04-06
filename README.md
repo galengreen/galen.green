@@ -1,122 +1,125 @@
-# galen.green
+# [galen.green](https://galen.green)
 
-Personal website built with Vue 3, Payload CMS, and MongoDB, self-hosted on TrueNAS Scale.
+Personal website built with Vue 3 on the frontend and Payload CMS on the backend. The frontend is statically built with Vite SSG, the CMS runs on Next.js, and both are shipped as Docker images for deployment on TrueNAS Scale.
 
-## Tech Stack
+## Stack
 
-| Layer    | Technology                        |
-| -------- | --------------------------------- |
-| Frontend | Vue 3, TypeScript, Vite, PrimeVue |
-| CMS      | Payload CMS 3, Next.js 15         |
-| Database | MongoDB 7                         |
-| Hosting  | TrueNAS Scale (Docker)            |
-| CI/CD    | GitHub Actions                    |
-| Registry | GitHub Container Registry         |
+| Layer      | Technology                          |
+| ---------- | ----------------------------------- |
+| Frontend   | Vue 3, TypeScript, Vite, Vite SSG   |
+| CMS        | Payload CMS 3, Next.js 15           |
+| Data       | MongoDB 7                           |
+| Deployment | Docker, Nginx, GitHub Actions, GHCR |
 
-## Project Structure
+## Development
 
-```
-├── src/                  # Vue 3 frontend
-├── cms/                  # Payload CMS
-├── nginx/                # Nginx reverse proxy config
-├── docs/                 # Hosting and deployment documentation
-└── .github/workflows/    # CI/CD pipelines
-```
+### Recommended: frontend against production CMS
 
-## Documentation
+This is the fastest way to work on the UI with real content.
 
-| Document                                     | Description                          |
-| -------------------------------------------- | ------------------------------------ |
-| [docs/HOSTING.md](docs/HOSTING.md)           | Hosting overview and quick reference |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | System architecture diagrams         |
-| [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md)     | Deployment procedures                |
-| [docs/ENVIRONMENT.md](docs/ENVIRONMENT.md)   | Environment variables reference      |
-
-## Development Setup
-
-### Prerequisites
-
-- Node.js ^20.19.0 or >=22.12.0
-- Docker (for MongoDB, or use remote CMS)
-
-### Option 1: Local Frontend with Production CMS (Recommended)
-
-The fastest way to develop frontend features using production data:
+Best option: run the frontend locally, but point it at the production CMS over Tailscale rather than the public domain. That keeps traffic private, avoids public edge behavior while developing, and still gives you real production data.
 
 ```sh
-# Install frontend dependencies
 npm install
-
-# Start with production CMS (proxied through Vite)
-npm run dev:prod
+CMS_URL=http://<tailscale-cms-host>:3000 npm run dev
 ```
 
-### Option 2: Full Local Stack
+If you specifically want to use the public URL instead, `npm run dev:prod` proxies `/api` and `/media` to `https://galen.green`.
 
-For CMS development or offline work:
+### Frontend against a custom CMS
+
+Use `CMS_URL` to change the Vite dev proxy target.
 
 ```sh
-# Install dependencies
+CMS_URL=http://localhost:3000 npm run dev
+```
+
+### Full local development
+
+If you need to work on the CMS too, run MongoDB locally, start the CMS, then run the frontend.
+
+1. Install dependencies:
+
+```sh
 npm install
-cd cms && npm install && cd ..
-
-# Start everything with Docker Compose
-docker-compose up -d
+npm --prefix cms install
 ```
 
-### Option 3: Individual Services
+2. Start MongoDB:
 
 ```sh
-# Terminal 1 - MongoDB
 docker run -d --name mongodb -p 27017:27017 mongo:7
-
-# Terminal 2 - CMS
-cd cms && npm run dev
-
-# Terminal 3 - Vue (connects to local CMS by default)
-npm run dev
 ```
 
-### Custom CMS URL
+3. Create `cms/.env` from `cms/.env.example` and set at least:
 
-You can point to any CMS instance:
+- `MONGODB_URI`
+
+- `PAYLOAD_SECRET`
+
+4. Start the CMS:
 
 ```sh
-# Via Tailscale
-CMS_URL=http://100.99.201.124:3000 npm run dev
-
-# Via public URL
-CMS_URL=https://galen.green npm run dev
+npm --prefix cms run dev
 ```
+
+5. Start the frontend:
+
+```sh
+CMS_URL=http://localhost:3000 npm run dev
+```
+
+## Environment Notes
+
+- `CMS_URL` controls the Vite dev proxy target used by `npm run dev`.
+
+- `VITE_PAYLOAD_URL` is used by SSR/static builds to fetch CMS data during `npm run build`.
+
+For local frontend builds against a local CMS:
+
+```sh
+VITE_PAYLOAD_URL=http://localhost:3000 npm run build
+```
+
+See `.env.example` and `cms/.env.example` for the current variable set.
 
 ## Commands
 
-| Command              | Description                       |
-| -------------------- | --------------------------------- |
-| `npm run dev`        | Start dev server (local CMS)      |
-| `npm run dev:prod`   | Start dev server (production CMS) |
-| `npm run build`      | Build for production              |
-| `npm run lint`       | Lint with ESLint                  |
-| `npm run type-check` | Type check with vue-tsc           |
+### Frontend
 
-### CMS Commands
+| Command              | Description                                 |
+| -------------------- | ------------------------------------------- |
+| `npm run dev`        | Start Vite with the default local CMS proxy |
+| `npm run dev:prod`   | Start Vite against the production CMS       |
+| `npm run build`      | Type-check and build the static frontend    |
+| `npm run build-only` | Build the static frontend without typecheck |
+| `npm run preview`    | Preview the built frontend locally          |
+| `npm run lint`       | Run ESLint                                  |
+| `npm run type-check` | Run `vue-tsc`                               |
+| `npm run format`     | Format `src/` with Prettier                 |
 
-| Command                            | Description               |
-| ---------------------------------- | ------------------------- |
-| `cd cms && npm run dev`            | Start Payload dev server  |
-| `cd cms && npm run build`          | Build for production      |
-| `cd cms && npm run generate:types` | Generate TypeScript types |
+### CMS
 
-## IDE Setup
+| Command                                   | Description                       |
+| ----------------------------------------- | --------------------------------- |
+| `npm --prefix cms run dev`                | Start the Payload CMS dev server  |
+| `npm --prefix cms run build`              | Build the CMS                     |
+| `npm --prefix cms run start`              | Start the built CMS               |
+| `npm --prefix cms run generate:types`     | Generate Payload TypeScript types |
+| `npm --prefix cms run generate:importmap` | Generate Payload import map       |
 
-[VS Code](https://code.visualstudio.com/) + [Vue (Official)](https://marketplace.visualstudio.com/items?itemName=Vue.volar) extension.
+## CI And Deployment
 
-## Browser DevTools
+- `.github/workflows/ci.yml` runs frontend lint/type-check/build plus a CMS build job.
 
-- **Chrome/Edge**: [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
-- **Firefox**: [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
+- `.github/workflows/deploy.yml` builds and pushes versioned frontend and CMS images to GitHub Container Registry.
 
-## Configuration
+- The frontend Docker build expects `VITE_PAYLOAD_URL` so prerendering can fetch CMS content at build time.
 
-- [Vite Configuration](https://vite.dev/config/)
-- [Payload CMS Documentation](https://payloadcms.com/docs)
+## References
+
+- [Vite documentation](https://vite.dev/config/)
+
+- [Payload CMS documentation](https://payloadcms.com/docs)
+
+⠀

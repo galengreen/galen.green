@@ -6,6 +6,8 @@
 
 ## Review
 
+- [2026-04-07-remove-matomo](cards/2026-04-07-remove-matomo.md)
+
 - [2026-04-07-homepage-prerender-cms-url](cards/2026-04-07-homepage-prerender-cms-url.md)
 
 - [2026-03-28-background-media-processing](cards/2026-03-28-background-media-processing.md)

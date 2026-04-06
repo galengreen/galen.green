@@ -70,7 +70,7 @@ export const createApp = ViteSSG(
       return { top: 0 }
     },
   },
-  ({ app, router, isClient, initialState }) => {
+  ({ app, isClient, initialState }) => {
     const shouldDisableSsgState =
       isClient &&
       typeof window !== 'undefined' &&
@@ -91,21 +91,6 @@ export const createApp = ViteSSG(
       // Initialise theme from system preference or localStorage
       const { initTheme } = useTheme()
       initTheme()
-
-      // Matomo Analytics
-      const matomoUrl = import.meta.env.VITE_MATOMO_URL
-      if (matomoUrl) {
-        void import('vue-matomo').then(({ default: VueMatomo }) => {
-          app.use(VueMatomo, {
-            host: matomoUrl,
-            siteId: 1,
-            router,
-            trackerFileName: 'matomo',
-            enableLinkTracking: true,
-            trackInitialView: true,
-          })
-        })
-      }
 
       // Prevent iOS Safari overscroll bounce on document (but allow pinch-to-zoom)
       document.body.addEventListener(
