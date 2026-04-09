@@ -1,0 +1,64 @@
+/*
+  Global Styles
+  Minimal, well-organised global styles for the site
+*/
+
+/* Base */
+html,
+body {
+  overscroll-behavior: none;
+  overflow: hidden;
+  height: 100%;
+}
+
+body {
+  background-color: var(--ui-frame);
+  color: var(--ui-text);
+  position: fixed;
+  width: 100%;
+  touch-action: manipulation;
+}
+
+/* Selection */
+::selection {
+  background-color: var(--ui-text);
+  color: var(--ui-bg);
+}
+
+/* Scrollbar - WebKit */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ui-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ui-border-strong);
+}
+
+/* Scrollbar - Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ui-border) transparent;
+}
+
+/* Visually hidden (accessible) */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

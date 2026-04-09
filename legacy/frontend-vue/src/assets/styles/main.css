@@ -1,0 +1,21 @@
+@import 'tailwindcss';
+@plugin '@tailwindcss/typography';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme inline {
+  --font-sans: var(--font-sans);
+  --font-mono: var(--font-mono);
+
+  --color-bg: var(--ui-bg);
+  --color-surface: var(--ui-surface);
+  --color-text: var(--ui-text);
+  --color-muted: var(--ui-muted);
+  --color-border: var(--ui-border);
+  --color-frame: var(--ui-frame);
+  --color-accent: var(--ui-accent);
+
+  --shadow-card: var(--ui-shadow-card);
+  --shadow-overlay: var(--ui-shadow-overlay);
+  --shadow-soft: var(--ui-shadow-soft);
+}

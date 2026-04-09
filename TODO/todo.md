@@ -6,6 +6,10 @@
 
 ## Review
 
+- [2026-04-09-react-rebuild-architecture](cards/2026-04-09-react-rebuild-architecture.md)
+
+- [2026-04-07-tailwind-migration](cards/2026-04-07-tailwind-migration.md)
+
 - [2026-04-07-remove-matomo](cards/2026-04-07-remove-matomo.md)
 
 - [2026-04-07-homepage-prerender-cms-url](cards/2026-04-07-homepage-prerender-cms-url.md)
