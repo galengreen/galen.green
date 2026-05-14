@@ -14,14 +14,24 @@ const CMS_ORIGIN = import.meta.env.SSR
 
 const apiUrl = (endpoint: string) => `${CMS_ORIGIN}/api${endpoint}`
 
+const withCacheBust = (url: string, method?: string) => {
+  if (method && method !== 'GET') {
+    return url
+  }
+
+  const separator = url.includes('?') ? '&' : '?'
+  return `${url}${separator}_=${Date.now()}`
+}
+
 /**
  * Generic fetch wrapper with error handling
  */
 async function fetchAPI<T>(endpoint: string, options?: RequestInit): Promise<T> {
-  const url = apiUrl(endpoint)
+  const url = withCacheBust(apiUrl(endpoint), options?.method)
 
   try {
     const response = await fetch(url, {
+      cache: 'no-store',
       headers: {
         'Content-Type': 'application/json',
       },
@@ -150,7 +160,9 @@ export const contact = {
  */
 export const github = {
   async getStats(): Promise<GitHubStats> {
-    const response = await fetch(apiUrl('/github-stats'))
+    const response = await fetch(withCacheBust(apiUrl('/github-stats')), {
+      cache: 'no-store',
+    })
     if (!response.ok) {
       throw new Error('Failed to fetch GitHub stats')
     }

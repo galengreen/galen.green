@@ -10,8 +10,8 @@ export function useSiteSettingsData() {
 
   let request: Promise<SiteSettings | null> | null = null
 
-  async function loadSiteSettings(): Promise<SiteSettings | null> {
-    if (siteSettings.value) {
+  async function loadSiteSettings(force = false): Promise<SiteSettings | null> {
+    if (siteSettings.value && !force) {
       return siteSettings.value
     }
 
@@ -36,6 +36,8 @@ export function useSiteSettingsData() {
 
   if (import.meta.env.SSR) {
     onServerPrefetch(loadSiteSettings)
+  } else if (siteSettings.value) {
+    void loadSiteSettings(true)
   }
 
   return {

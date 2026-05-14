@@ -104,9 +104,9 @@ export function useHomeContent() {
 
   if (import.meta.env.SSR) {
     onServerPrefetch(loadContent)
-  } else if (!hasLoaded.value || shouldRetryFromInitialState) {
+  } else {
     onMounted(() => {
-      void loadContent(shouldRetryFromInitialState)
+      void loadContent(hasUsableInitialContent || shouldRetryFromInitialState)
     })
   }
 
