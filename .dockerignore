@@ -1,0 +1,29 @@
+# Dependencies
+node_modules
+npm-debug.log
+
+# Build output
+dist
+.vite-ssg-temp
+
+# Repository and CI metadata
+.git
+.github
+.gitignore
+
+# CMS app is built from cms/Dockerfile separately
+cms
+
+# Environment files
+.env
+.env.*
+
+# Local tooling
+.vscode
+.idea
+.DS_Store
+Thumbs.db
+
+# Logs and coverage
+*.log
+coverage

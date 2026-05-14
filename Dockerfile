@@ -11,7 +11,7 @@ ENV VITE_PAYLOAD_URL=${VITE_PAYLOAD_URL}
 COPY package*.json ./
 
 # Install dependencies
-RUN npm ci
+RUN --mount=type=cache,target=/root/.npm npm ci --prefer-offline
 
 # Copy source code
 COPY . .

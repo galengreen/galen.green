@@ -5,6 +5,7 @@ npm-debug.log
 # Build output
 .next
 out
+dist
 
 # Environment files
 .env
@@ -17,6 +18,7 @@ media
 # Development files
 *.md
 .git
+.github
 .gitignore
 .eslintrc*
 .prettierrc*
